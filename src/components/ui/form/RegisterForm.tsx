@@ -11,6 +11,7 @@ export default function RegistrationForm() {
         country: "",
         region: "",
         city: "",
+        postalCode: "",
         address: "",
         email: "",
         password: "",
@@ -31,7 +32,29 @@ export default function RegistrationForm() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(formData + "add logic here!");
+
+        if (!country) {
+            alert("Please select a country.");
+            return;
+        }
+        if (!region) {
+            alert("Please select a region.");
+            return;
+        }
+
+        let utcOpenTime = convertTimeToUTC(formData.openTime);
+        let utcCloseTime = convertTimeToUTC(formData.closeTime);
+
+
+    };
+
+    const convertTimeToUTC = (time: string) => {
+        const date = new Date();
+        const [hours, minutes] = time.split(":");
+        date.setHours(parseInt(hours), parseInt(minutes));
+        const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
+        const utcTime = new Date(date.getTime() - timezoneOffset);
+        return utcTime.toISOString().substring(11, 16);
     };
 
     return (
@@ -67,20 +90,6 @@ export default function RegistrationForm() {
                         value={formData.password}
                         handleChange={handleChange}
                     />
-                    <FormEntry
-                        type="text"
-                        name="address"
-                        label="Address"
-                        value={formData.address}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="text"
-                        name="city"
-                        label="City"
-                        value={formData.city}
-                        handleChange={handleChange}
-                    />
                     <div>
                         <label className="block text-gray-700">Country</label>
                         <CountryDropdown
@@ -98,6 +107,43 @@ export default function RegistrationForm() {
                             onChange={(val: React.SetStateAction<string>) => setRegion(val)}
                         />
                     </div>
+                    <FormEntry
+                        type="text"
+                        name="city"
+                        label="City"
+                        value={formData.city}
+                        handleChange={handleChange}
+                    />
+                    <FormEntry
+                        type="text"
+                        name="postalCode"
+                        label="Postal Code"
+                        value={formData.postalCode}
+                        handleChange={handleChange}
+                        pattern={"[0-9]{5}"}
+                    />
+                    <FormEntry
+                        type="text"
+                        name="address"
+                        label="Address"
+                        value={formData.address}
+                        handleChange={handleChange}
+                    />
+                    <FormEntry
+                        type="time"
+                        name="openTime"
+                        label="Open Time"
+                        value={formData.openTime}
+                        handleChange={handleChange}
+                    />
+                    <FormEntry
+                        type="time"
+                        name="closeTime"
+                        label="Close Time"
+                        value={formData.openTime}
+                        handleChange={handleChange}
+                    />
+
                     <button
                         type="submit"
                         className="mt-4 p-2 bg-blue-500 text-white rounded-md"

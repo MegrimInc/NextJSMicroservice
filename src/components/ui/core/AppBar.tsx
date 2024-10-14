@@ -3,11 +3,12 @@ export default function AppBar() {
         // This will be changed later
         <header className="bg-blue-600 text-white py-4">
             <nav className="container mx-auto flex justify-between">
-                <div className="text-lg font-bold">MyApp</div>
+                <div className="text-lg font-bold">Barzzy</div>
                 <ul className="flex space-x-4">
                     <li><a href="/">Home</a></li>
                     <li><a href="/about">About</a></li>
                     <li><a href="/contact">Contact</a></li>
+                    <li><a href="/register">Register</a></li>
                 </ul>
             </nav>
         </header>
