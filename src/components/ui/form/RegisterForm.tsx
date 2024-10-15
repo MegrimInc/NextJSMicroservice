@@ -3,9 +3,26 @@
 import React, { useState } from "react";
 import FormEntry from "./FormEntry";
 import {CountryDropdown, RegionDropdown} from "react-country-region-selector";
+import {useRouter} from "next/navigation";
+
+interface FormData {
+    companyName: string;
+    companyNickname: string;
+    country: string;
+    region: string;
+    city: string;
+    postalCode: string;
+    address: string;
+    email: string;
+    password: string;
+    openTime: string;
+    closeTime: string;
+}
 
 export default function RegistrationForm() {
-    const [formData, setFormData] = useState({
+    const router = useRouter();
+
+    const [formData, setFormData] = useState<FormData>({
         companyName: "",
         companyNickname: "",
         country: "",
@@ -42,10 +59,20 @@ export default function RegistrationForm() {
             return;
         }
 
-        let utcOpenTime = convertTimeToUTC(formData.openTime);
-        let utcCloseTime = convertTimeToUTC(formData.closeTime);
+        const utcOpenTime = convertTimeToUTC(formData.openTime);
+        const utcCloseTime = convertTimeToUTC(formData.closeTime);
 
+        const formDataToStore = {
+            ...formData,
+            openTime: utcOpenTime,
+            closeTime: utcCloseTime,
+            country,
+            region
+        };
 
+        sessionStorage.setItem("formData", JSON.stringify(formDataToStore));
+
+        router.push("/register/verify")
     };
 
     const convertTimeToUTC = (time: string) => {
@@ -140,7 +167,7 @@ export default function RegistrationForm() {
                         type="time"
                         name="closeTime"
                         label="Close Time"
-                        value={formData.openTime}
+                        value={formData.closeTime}
                         handleChange={handleChange}
                     />
 
