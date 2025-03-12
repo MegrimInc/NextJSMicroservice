@@ -20,6 +20,24 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+input {
+  color: black !important; /* Ensures text is visible */
+  background-color: white; /* Keeps the input background white */
+  border: 1px solid #ccc; /* Adds a light border for visibility */
+  padding: 8px;
+  font-size: 16px;
+}
+
+input::placeholder {
+  color: #888; /* Makes placeholder text visible but not too dark */
+}
+
+input:focus {
+  outline: none;
+  border-color: #007bff; /* Adds blue border highlight when selected */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

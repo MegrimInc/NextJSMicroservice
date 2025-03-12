@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import FormEntry from "./FormEntry";
-import {CountryDropdown, RegionDropdown} from "react-country-region-selector";
-import {useRouter} from "next/navigation";
+import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
+import { useRouter } from "next/navigation";
+import { apiRequest } from "@/lib/api/api";
 
 interface FormData {
     companyName: string;
@@ -19,7 +20,7 @@ interface FormData {
     closeTime: string;
 }
 
-export default function RegistrationForm() {
+export default function RegisterForm() {
     const router = useRouter();
 
     const [formData, setFormData] = useState<FormData>({
@@ -41,53 +42,53 @@ export default function RegistrationForm() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData((prev) => ({
+            ...prev,
             [name]: value,
-        });
+        }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        if (!country) {
-            alert("Please select a country.");
-            return;
-        }
-        if (!region) {
-            alert("Please select a region.");
-            return;
-        }
-
-        const utcOpenTime = convertTimeToUTC(formData.openTime);
-        const utcCloseTime = convertTimeToUTC(formData.closeTime);
-
-        const formDataToStore = {
-            ...formData,
-            openTime: utcOpenTime,
-            closeTime: utcCloseTime,
-            country,
-            region
+        const payload = {
+            email: formData.email,
+            password: formData.password,
+            companyName: formData.companyName,
+            companyNickname: formData.companyNickname,
+            country: country,
+            region: region,
+            city: formData.city,
+            address: formData.address,
+            openTime: formData.openTime,
+            closeTime: formData.closeTime,
         };
 
-        sessionStorage.setItem("formData", JSON.stringify(formDataToStore));
+        try {
+            // Register the bar on the backend
+            const response = await fetch("https://www.barzzy.site/newsignup/registerbar", {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
 
-        router.push("/register/verify")
-    };
 
-    const convertTimeToUTC = (time: string) => {
-        const date = new Date();
-        const [hours, minutes] = time.split(":");
-        date.setHours(parseInt(hours), parseInt(minutes));
-        const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
-        const utcTime = new Date(date.getTime() - timezoneOffset);
-        return utcTime.toISOString().substring(11, 16);
+            alert("Registration successful! Redirecting to Menu!");
+            // Redirect to the new Drinks page
+            router.push("/register/drinks");
+            router.refresh();
+
+        } catch (error: any) {
+            console.error("Registration failed:", error);
+            alert("Registration failed: " + error.message);
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="w-full max-w-md p-8 bg-white shadow-md rounded-lg">
-                <h2 className="text-2xl font-bold text-center mb-6">Register</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">Register Your Bar</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <FormEntry
                         type="text"
@@ -122,7 +123,7 @@ export default function RegistrationForm() {
                         <CountryDropdown
                             classes="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
                             value={country}
-                            onChange={(val: React.SetStateAction<string>) => setCountry(val)}
+                            onChange={(val: string) => setCountry(val)}
                         />
                     </div>
                     <div>
@@ -131,7 +132,7 @@ export default function RegistrationForm() {
                             country={country}
                             classes="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
                             value={region}
-                            onChange={(val: React.SetStateAction<string>) => setRegion(val)}
+                            onChange={(val: string) => setRegion(val)}
                         />
                     </div>
                     <FormEntry
@@ -147,7 +148,7 @@ export default function RegistrationForm() {
                         label="Postal Code"
                         value={formData.postalCode}
                         handleChange={handleChange}
-                        pattern={"[0-9]{5}"}
+                        pattern="[0-9]{5}"
                     />
                     <FormEntry
                         type="text"
@@ -170,10 +171,9 @@ export default function RegistrationForm() {
                         value={formData.closeTime}
                         handleChange={handleChange}
                     />
-
                     <button
                         type="submit"
-                        className="mt-4 p-2 bg-blue-500 text-white rounded-md"
+                        className="mt-4 p-2 bg-blue-500 text-white rounded-md w-full"
                     >
                         Register
                     </button>
