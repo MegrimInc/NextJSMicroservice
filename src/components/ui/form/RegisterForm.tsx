@@ -76,7 +76,7 @@ export default function RegisterForm() {
 
             alert("Registration successful! Redirecting to Menu!");
             // Redirect to the new Drinks page
-            router.push("/register/drinks");
+            router.push("/analytics");
             router.refresh();
 
         } catch (error: any) {

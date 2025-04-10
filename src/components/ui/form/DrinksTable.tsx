@@ -1,4 +1,4 @@
-"use clieNt";
+"use client";
 import React, { useState } from 'react';
 
 interface Drink {
@@ -83,36 +83,36 @@ const DrinksTable: React.FC = () => {
     };
 
     return (
-        <div className="overflow-x-auto">
-            <h2 className="text-xl font-bold mb-4">Manage Drinks for "The Burg"</h2>
-            <table className="min-w-full bg-white border border-gray-200">
-                <thead>
+        <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Manage Drinks</h2>
+            <table className="min-w-full table-auto">
+                <thead className="bg-blue-700 text-white">
                 <tr>
-                    <th className="py-2 px-4 border-b text-black">Drink ID</th>
-                    <th className="py-2 px-4 border-b text-black">Point Price</th>
-                    <th className="py-2 px-4 border-b text-black">Single Price</th>
-                    <th className="py-2 px-4 border-b text-black">Single Happy Price</th>
-                    <th className="py-2 px-4 border-b text-black">Double Price</th>
-                    <th className="py-2 px-4 border-b text-black">Double Happy Price</th>
-                    <th className="py-2 px-4 border-b text-black">Drink Name</th>
-                    <th className="py-2 px-4 border-b text-black">Alcohol Content</th>
-                    <th className="py-2 px-4 border-b text-black">Drink Image</th>
-                    <th className="py-2 px-4 border-b text-black">Tags</th>
-                    <th className="py-2 px-4 border-b text-black">Description</th>
-                    <th className="py-2 px-4 border-b text-black">Actions</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Drink ID</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Point Price</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Single Price</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Single Happy Price</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Double Price</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Double Happy Price</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Drink Name</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Alcohol Content</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Drink Image</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Tags</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Description</th>
+                    <th className="py-2 px-4 border-b uppercase text-sm">Actions</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200">
                 {drinks.map((drink) => (
-                    <tr key={drink.drink_id}>
-                        <td className="py-2 px-4 border-b text-black">{drink.drink_id}</td>
+                    <tr key={drink.drink_id} className="hover:bg-gray-50">
+                        <td className="py-2 px-4 border-b text-gray-800">{drink.drink_id}</td>
                         <td className="py-2 px-4 border-b">
                             <input
                                 type="number"
                                 name="point_price"
                                 value={drink.point_price}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -121,7 +121,7 @@ const DrinksTable: React.FC = () => {
                                 name="single_price"
                                 value={drink.single_price || ""}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -130,7 +130,7 @@ const DrinksTable: React.FC = () => {
                                 name="single_happy_price"
                                 value={drink.single_happy_price || ""}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -139,7 +139,7 @@ const DrinksTable: React.FC = () => {
                                 name="double_price"
                                 value={drink.double_price || ""}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -148,7 +148,7 @@ const DrinksTable: React.FC = () => {
                                 name="double_happy_price"
                                 value={drink.double_happy_price || ""}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -157,7 +157,7 @@ const DrinksTable: React.FC = () => {
                                 name="drink_name"
                                 value={drink.drink_name}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -166,7 +166,7 @@ const DrinksTable: React.FC = () => {
                                 name="alcohol_content"
                                 value={drink.alcohol_content}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -175,7 +175,7 @@ const DrinksTable: React.FC = () => {
                                 name="drink_image"
                                 value={drink.drink_image}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                                 placeholder="Image URL"
                             />
                         </td>
@@ -185,7 +185,7 @@ const DrinksTable: React.FC = () => {
                                 name="drink_tags"
                                 value={drink.drink_tags}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
@@ -194,23 +194,25 @@ const DrinksTable: React.FC = () => {
                                 name="description"
                                 value={drink.description}
                                 onChange={(e) => handleInputChange(e, drink.drink_id)}
-                                className="w-full text-black"
+                                className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </td>
                         <td className="py-2 px-4 border-b">
-                            <button onClick={() => deleteDrink(drink.drink_id)} className="text-red-500">Delete</button>
+                            <button onClick={() => deleteDrink(drink.drink_id)} className="text-red-500 hover:underline">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 ))}
-                <tr>
-                    <td className="py-2 px-4 border-b text-black">{newDrink.drink_id}</td>
+                <tr className="hover:bg-gray-50">
+                    <td className="py-2 px-4 border-b text-gray-800">{newDrink.drink_id}</td>
                     <td className="py-2 px-4 border-b">
                         <input
                             type="number"
                             name="point_price"
                             value={newDrink.point_price}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -219,7 +221,7 @@ const DrinksTable: React.FC = () => {
                             name="single_price"
                             value={newDrink.single_price || ""}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -228,7 +230,7 @@ const DrinksTable: React.FC = () => {
                             name="single_happy_price"
                             value={newDrink.single_happy_price || ""}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -237,7 +239,7 @@ const DrinksTable: React.FC = () => {
                             name="double_price"
                             value={newDrink.double_price || ""}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -246,7 +248,7 @@ const DrinksTable: React.FC = () => {
                             name="double_happy_price"
                             value={newDrink.double_happy_price || ""}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -255,7 +257,7 @@ const DrinksTable: React.FC = () => {
                             name="drink_name"
                             value={newDrink.drink_name}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             placeholder="New Drink"
                         />
                     </td>
@@ -265,7 +267,7 @@ const DrinksTable: React.FC = () => {
                             name="alcohol_content"
                             value={newDrink.alcohol_content}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -274,7 +276,7 @@ const DrinksTable: React.FC = () => {
                             name="drink_image"
                             value={newDrink.drink_image}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                             placeholder="Image URL"
                         />
                     </td>
@@ -284,7 +286,7 @@ const DrinksTable: React.FC = () => {
                             name="drink_tags"
                             value={newDrink.drink_tags}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
@@ -293,11 +295,13 @@ const DrinksTable: React.FC = () => {
                             name="description"
                             value={newDrink.description}
                             onChange={handleNewDrinkChange}
-                            className="w-full text-black"
+                            className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
                     </td>
                     <td className="py-2 px-4 border-b">
-                        <button onClick={addDrink} className="text-green-500">Add</button>
+                        <button onClick={addDrink} className="text-green-500 hover:underline">
+                            Add
+                        </button>
                     </td>
                 </tr>
                 </tbody>
