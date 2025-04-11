@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-// If you prefer to keep constants in a separate file, that's fine
-const BASE_URL = "https://www.barzzy.site"; // Adjust if needed
+const BASE_URL = "https://www.barzzy.site";
 
 interface GeneralData {
     revenue: number;
@@ -17,232 +16,255 @@ interface Order {
     orderId: number;
     barId: number;
     userId: number;
-    timestamp: string; // or a date in your JSON
+    timestamp: string;
     totalPointPrice: number;
     totalRegularPrice: number;
     tip: number;
     status: string;
     pointOfSale: boolean;
-    // etc. (match your actual structure)
 }
 
 export default function AnalyticsPage() {
-    // --- State ---
     const [generalData, setGeneralData] = useState<GeneralData | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
+    const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
+    const [top5, setTop5] = useState<Record<string, number> | null>(null);
     const [startDate, setStartDate] = useState<string>("");
     const [endDate, setEndDate] = useState<string>("");
+    const [dayFilter, setDayFilter] = useState<string>("");
     const [error, setError] = useState<string>("");
 
-    // Grab barEmail/barPW from localStorage
-    // Make sure at login time you do:
-    //   localStorage.setItem("barEmail", email);
-    //   localStorage.setItem("barPW", password);
-    const barEmail =
-        typeof window !== "undefined" ? localStorage.getItem("barEmail") : null;
-    const barPW =
-        typeof window !== "undefined" ? localStorage.getItem("barPW") : null;
+    const barEmail = typeof window !== "undefined" ? localStorage.getItem("barEmail") ?? "" : "";
+    const barPW = typeof window !== "undefined" ? localStorage.getItem("barPW") ?? "" : "";
 
-    // --- 1. Fetch the general data on first render ---
     useEffect(() => {
         if (!barEmail || !barPW) {
-            setError("No barEmail/barPW found in localStorage. Please log in again.");
+            setError("Missing credentials. Please log in again.");
             return;
         }
 
-        async function fetchGeneralData() {
+        const fetchGeneralData = async () => {
+            const url = `${BASE_URL}/orders/generalData?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}`;
             try {
-                const barEmail = localStorage.getItem("barEmail") ?? "";
-                const barPW = localStorage.getItem("barPW") ?? "";
-
-// Now both are guaranteed strings (could be empty "")
-                const url = `${BASE_URL}/orders/generalData?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}`;
-
-
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch general data");
-                }
-
-                const json = await response.json();
-                setGeneralData(json); // {revenue, drinks, tips, drinksPoints, points}
+                const res = await fetch(url);
+                console.log("GeneralData response status:", res.status);
+                if (!res.ok) throw new Error("Failed to fetch general data");
+                const data = await res.json();
+                setGeneralData(data);
             } catch (err: any) {
-                setError(err.message);
+                setError("Error: " + err.message);
+                console.error("GeneralData fetch failed:", err);
             }
-        }
+        };
 
         fetchGeneralData();
     }, [barEmail, barPW]);
 
-    // --- 2. Fetch orders by date range ---
     const handleFilterOrders = async () => {
-        if (!barEmail || !barPW) {
-            setError("No barEmail/barPW found. Please log in again.");
-            return;
-        }
-
-        // Convert selected date strings to epoch millis
-        // e.g. if startDate = '2025-01-01' => new Date('2025-01-01').getTime()
+        setError("");
         const startMillis = new Date(startDate).getTime();
         const endMillis = new Date(endDate).getTime();
-
         if (isNaN(startMillis) || isNaN(endMillis)) {
-            setError("Please provide valid start/end dates.");
+            setError("Invalid date range.");
             return;
         }
-        setError("");
-
         try {
-            const url = `${BASE_URL}/orders/contributionByDateRange?barEmail=${encodeURIComponent(
-                barEmail
-            )}&barPW=${encodeURIComponent(
-                barPW
-            )}&start=${startMillis}&end=${endMillis}`;
-
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error("Failed to fetch orders by date range");
-            }
-
-            const data = await response.json();
-            // data format: { "orders": [ order1, order2, … orderN ] }
+            const url = `${BASE_URL}/orders/contributionByDateRange?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}&start=${startMillis}&end=${endMillis}`;
+            const res = await fetch(url);
+            console.log("contributionByDateRange status:", res.status);
+            if (!res.ok) throw new Error("Failed to fetch range orders");
+            const data = await res.json();
             if (!data.orders) {
-                setError("No orders field in response.");
-                return;
+                throw new Error("No 'orders' in response.");
             }
             setOrders(data.orders);
         } catch (err: any) {
-            setError(err.message);
+            setError("Error: " + err.message);
+            console.error("Date range fetch error:", err);
+        }
+    };
+
+    const handleFilterByDay = async () => {
+        setError("");
+        if (!dayFilter) {
+            setError("Select a day.");
+            return;
+        }
+        try {
+            const url = `${BASE_URL}/orders/byDay?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}&date=${encodeURIComponent(dayFilter)}`;
+            const res = await fetch(url);
+            console.log("byDay status:", res.status);
+            if (!res.ok) throw new Error("Failed to fetch daily orders");
+            const data = await res.json();
+            if (!data.orders) throw new Error("Missing 'orders' in daily result.");
+            setOrdersByDay(data.orders);
+        } catch (err: any) {
+            setError("Error: " + err.message);
+            console.error("ByDay fetch error:", err);
+        }
+    };
+
+    const fetchTop5 = async () => {
+        setError("");
+        try {
+            const url = `${BASE_URL}/orders/top5Drinks?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}`;
+            const res = await fetch(url);
+            console.log("top5Drinks status:", res.status);
+            if (!res.ok) throw new Error("Top 5 fetch failed");
+            const data = await res.json();
+            if (!data.data) throw new Error("No 'data' in Top 5 response.");
+            setTop5(data.data);
+        } catch (err: any) {
+            setError("Error: " + err.message);
+            console.error("Top5 fetch error:", err);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 px-4">
-            <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
-                Analytics Dashboard
-            </h1>
+        <div className="min-h-screen bg-white text-black py-8 px-4">
+            <h1 className="text-3xl font-bold mb-6 text-center">Analytics Dashboard</h1>
 
             {error && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-                    <p>{error}</p>
+                    {error}
                 </div>
             )}
 
-            {/* Summary Cards */}
             {generalData && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 max-w-5xl mx-auto">
-                    <div className="bg-white shadow p-4 rounded">
-                        <h2 className="font-semibold">Revenue</h2>
-                        <p className="text-2xl text-green-600">
-                            ${generalData.revenue.toFixed(2)}
-                        </p>
-                    </div>
-                    <div className="bg-white shadow p-4 rounded">
-                        <h2 className="font-semibold">Drinks Sold</h2>
-                        <p className="text-2xl text-purple-600">{generalData.drinks}</p>
-                    </div>
-                    <div className="bg-white shadow p-4 rounded">
-                        <h2 className="font-semibold">Tips</h2>
-                        <p className="text-2xl text-yellow-600">
-                            ${generalData.tips.toFixed(2)}
-                        </p>
-                    </div>
-                    <div className="bg-white shadow p-4 rounded">
-                        <h2 className="font-semibold">Drinks w/Points</h2>
-                        <p className="text-2xl text-blue-600">{generalData.drinksPoints}</p>
-                    </div>
-                    <div className="bg-white shadow p-4 rounded">
-                        <h2 className="font-semibold">Points Spent</h2>
-                        <p className="text-2xl text-red-600">{generalData.points}</p>
-                    </div>
+                    <Card title="Revenue ($)" value={`$${generalData.revenue.toFixed(2)}`} />
+                    <Card title="Revenue (pts)" value={`${generalData.points} pts`} />
+                    <Card title="Units Sold ($)" value={`${generalData.drinks}`} />
+                    <Card title="Units Sold (pts)" value={`${generalData.drinksPoints}`} />
+                    <Card title="Tips" value={`$${generalData.tips.toFixed(2)}`} />
                 </div>
             )}
 
-            {/* Date Range Filter */}
-            <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto">
-                <h2 className="text-xl font-bold mb-4">Filter Orders by Date Range</h2>
-                <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
-                    <div>
-                        <label className="block text-gray-700">Start Date</label>
-                        <input
-                            type="date"
-                            className="mt-1 p-2 border rounded w-48"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700">End Date</label>
-                        <input
-                            type="date"
-                            className="mt-1 p-2 border rounded w-48"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        onClick={handleFilterOrders}
-                        className="bg-blue-500 text-white px-4 py-2 rounded mt-4 md:mt-6"
-                    >
-                        Filter Orders
-                    </button>
-                </div>
-            </div>
+            {/* Date Filter */}
+            <DateFilter
+                title="Filter Orders by Date Range"
+                startDate={startDate}
+                endDate={endDate}
+                onStartChange={setStartDate}
+                onEndChange={setEndDate}
+                onSubmit={handleFilterOrders}
+            />
 
-            {/* Orders Table */}
-            <div className="max-w-5xl mx-auto bg-white shadow p-6 rounded overflow-x-auto">
-                <h2 className="text-xl font-bold mb-4">Orders</h2>
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-blue-600">
-                    <tr>
-                        <th className="px-4 py-2 text-left text-white text-sm font-semibold">
-                            Order ID
-                        </th>
-                        <th className="px-4 py-2 text-left text-white text-sm font-semibold">
-                            Timestamp
-                        </th>
-                        <th className="px-4 py-2 text-left text-white text-sm font-semibold">
-                            Total Price
-                        </th>
-                        <th className="px-4 py-2 text-left text-white text-sm font-semibold">
-                            Tip
-                        </th>
-                        <th className="px-4 py-2 text-left text-white text-sm font-semibold">
-                            Status
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                    {orders.map((order) => (
-                        <tr key={order.orderId} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 text-gray-700">{order.orderId}</td>
-                            <td className="px-4 py-2 text-gray-700">
-                                {order.timestamp
-                                    ? new Date(order.timestamp).toLocaleString()
-                                    : "--"}
-                            </td>
-                            <td className="px-4 py-2 text-gray-700">
-                                ${order.totalRegularPrice.toFixed(2)}
-                            </td>
-                            <td className="px-4 py-2 text-gray-700">
-                                ${order.tip.toFixed(2)}
-                            </td>
-                            <td className="px-4 py-2 text-gray-700">{order.status}</td>
-                        </tr>
-                    ))}
-                    {orders.length === 0 && (
-                        <tr>
-                            <td
-                                colSpan={5}
-                                className="px-4 py-4 text-center text-gray-500 italic"
-                            >
-                                No orders found for this date range
-                            </td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
+            {orders.length > 0 && <OrdersTable title="Orders (Date Range)" orders={orders} />}
+
+            {/* By Day */}
+            <DateFilter
+                title="Filter Orders by Day"
+                dayOnly
+                startDate={dayFilter}
+                onStartChange={setDayFilter}
+                onSubmit={handleFilterByDay}
+            />
+            {ordersByDay.length > 0 && <OrdersTable title="Orders (By Day)" orders={ordersByDay} />}
+
+            {/* Top 5 */}
+            <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto border border-gray-300">
+                <h2 className="text-xl font-bold mb-4">Top 5 Items Sold</h2>
+                <button onClick={fetchTop5} className="bg-black text-white px-4 py-2 rounded mb-4 border border-gray-300">
+                    Load Top 5 Items
+                </button>
+                {top5 && (
+                    <div className="space-y-2">
+                        {Object.entries(top5).map(([name, qty]) => (
+                            <div key={name} className="flex justify-between border-b border-gray-200 pb-2">
+                                <span className="font-semibold">{name}</span>
+                                <span>{qty}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+// Utility Components
+const Card = ({ title, value }: { title: string; value: string }) => (
+    <div className="bg-white shadow p-4 rounded border border-gray-300">
+        <h2 className="font-semibold">{title}</h2>
+        <p className="text-2xl">{value}</p>
+    </div>
+);
+
+const OrdersTable = ({ title, orders }: { title: string; orders: Order[] }) => (
+    <div className="max-w-5xl mx-auto bg-white shadow p-6 rounded overflow-x-auto border border-gray-300 mb-8">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-gray-200">
+            <tr>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Total Price</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Tip</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
+            </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-300">
+            {orders.map((order) => (
+                <tr key={order.orderId} className="hover:bg-gray-100">
+                    <td className="px-4 py-2">{order.orderId}</td>
+                    <td className="px-4 py-2">{new Date(order.timestamp).toLocaleString()}</td>
+                    <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
+                    <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
+                    <td className="px-4 py-2">{order.status}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+    </div>
+);
+
+const DateFilter = ({
+                        title,
+                        startDate,
+                        endDate,
+                        onStartChange,
+                        onEndChange,
+                        onSubmit,
+                        dayOnly = false,
+                    }: {
+    title: string;
+    startDate: string;
+    endDate?: string;
+    onStartChange: (s: string) => void;
+    onEndChange?: (s: string) => void;
+    onSubmit: () => void;
+    dayOnly?: boolean;
+}) => (
+    <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto border border-gray-300">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
+            <div>
+                <label className="block text-gray-700">{dayOnly ? "Date" : "Start Date"}</label>
+                <input
+                    type="date"
+                    className="mt-1 p-2 border border-gray-300 rounded w-48 bg-white text-black"
+                    value={startDate}
+                    onChange={(e) => onStartChange(e.target.value)}
+                />
+            </div>
+            {!dayOnly && endDate && onEndChange && (
+                <div>
+                    <label className="block text-gray-700">End Date</label>
+                    <input
+                        type="date"
+                        className="mt-1 p-2 border border-gray-300 rounded w-48 bg-white text-black"
+                        value={endDate}
+                        onChange={(e) => onEndChange(e.target.value)}
+                    />
+                </div>
+            )}
+            <button
+                onClick={onSubmit}
+                className="bg-black text-white px-4 py-2 rounded mt-4 md:mt-6 border border-gray-300"
+            >
+                {dayOnly ? "Filter Day" : "Filter"}
+            </button>
+        </div>
+    </div>
+);
