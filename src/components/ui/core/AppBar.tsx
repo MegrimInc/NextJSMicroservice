@@ -34,23 +34,26 @@ export default function AppBar({ megrimFont }: AppBarProps) {
 
   return (
     <header
-  className="bg-gradient-to-r from-black via-gray-900 to-gray-700 shadow-md font-sans border-b-2 border-solid"
-  style={{ borderImage: "linear-gradient(to right, rgba(255,255,255,0.2), rgba(100,100,100,0.5), rgba(0,0,0,1)) 1" }}
->
+      className="bg-gradient-to-r from-black via-gray-900 to-gray-700 shadow-md font-sans border-b-2 border-solid"
+      style={{ borderImage: "linear-gradient(to right, rgba(255,255,255,0.2), rgba(100,100,100,0.5), rgba(0,0,0,1)) 1" }}
+    >
       <nav className="flex items-center justify-between w-full py-4 px-6 rounded-b-xl">
         <div className={`text-2xl font-extrabold tracking-wide text-white drop-shadow-sm ${megrimFont}`}>
           Megrim
         </div>
         <ul className="flex space-x-6 text-lg font-medium text-white">
-          <li>
-            <Link href="/" className="hover:text-gray-300 transition duration-200">
-              Home
-            </Link>
-          </li>
+          {/* Conditionally render Home link only if not logged in */}
+          {!isLoggedIn && (
+            <li>
+              <Link href="/" className="hover:text-gray-300 transition duration-200">
+                Home
+              </Link>
+            </li>
+          )}
           {isLoggedIn ? (
             <>
               <li>
-                <Link href="/menu" className="hover:text-gray-300 transition duration-200">
+                <Link href="/inventory" className="hover:text-gray-300 transition duration-200">
                   Inventory
                 </Link>
               </li>
