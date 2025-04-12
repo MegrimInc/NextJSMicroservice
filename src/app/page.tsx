@@ -1,6 +1,7 @@
 "use client";
 
-import { FaCloud, FaGift, FaChartLine } from "react-icons/fa"; 
+// @ts-ignore
+import { FaCloud, FaGift, FaChartLine } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
 
