@@ -525,7 +525,7 @@ function OrdersTable({ title, orders }: { title: string; orders: Order[] }) {
                 <tr>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Customer</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Drinks</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Items</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Total Price</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold">Tip</th>
