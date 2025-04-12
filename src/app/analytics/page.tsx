@@ -29,10 +29,11 @@ export default function AnalyticsPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
     const [top5, setTop5] = useState<Record<string, number> | null>(null);
-    const [startDate, setStartDate] = useState<string>("");
-    const [endDate, setEndDate] = useState<string>("");
+    // Removed startDate, endDate state variables for date range filter
     const [dayFilter, setDayFilter] = useState<string>("");
     const [error, setError] = useState<string>("");
+    // New state to hold the raw response for debugging
+    const [dayResponse, setDayResponse] = useState<string>("");
 
     const barEmail = typeof window !== "undefined" ? localStorage.getItem("barEmail") ?? "" : "";
     const barPW = typeof window !== "undefined" ? localStorage.getItem("barPW") ?? "" : "";
@@ -60,29 +61,7 @@ export default function AnalyticsPage() {
         fetchGeneralData();
     }, [barEmail, barPW]);
 
-    const handleFilterOrders = async () => {
-        setError("");
-        const startMillis = new Date(startDate).getTime();
-        const endMillis = new Date(endDate).getTime();
-        if (isNaN(startMillis) || isNaN(endMillis)) {
-            setError("Invalid date range.");
-            return;
-        }
-        try {
-            const url = `${BASE_URL}/orders/contributionByDateRange?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}&start=${startMillis}&end=${endMillis}`;
-            const res = await fetch(url);
-            console.log("contributionByDateRange status:", res.status);
-            if (!res.ok) throw new Error("Failed to fetch range orders");
-            const data = await res.json();
-            if (!data.orders) {
-                throw new Error("No 'orders' in response.");
-            }
-            setOrders(data.orders);
-        } catch (err: any) {
-            setError("Error: " + err.message);
-            console.error("Date range fetch error:", err);
-        }
-    };
+    // Removed date range filter; using only the "Filter Orders by Day" functionality below.
 
     const handleFilterByDay = async () => {
         setError("");
@@ -96,8 +75,11 @@ export default function AnalyticsPage() {
             console.log("byDay status:", res.status);
             if (!res.ok) throw new Error("Failed to fetch daily orders");
             const data = await res.json();
+            console.log("byDay response:", data);
             if (!data.orders) throw new Error("Missing 'orders' in daily result.");
             setOrdersByDay(data.orders);
+            // Set the raw JSON response as a formatted string for debugging
+            setDayResponse(JSON.stringify(data, null, 2));
         } catch (err: any) {
             setError("Error: " + err.message);
             console.error("ByDay fetch error:", err);
@@ -140,19 +122,9 @@ export default function AnalyticsPage() {
                 </div>
             )}
 
-            {/* Date Filter */}
-            <DateFilter
-                title="Filter Orders by Date Range"
-                startDate={startDate}
-                endDate={endDate}
-                onStartChange={setStartDate}
-                onEndChange={setEndDate}
-                onSubmit={handleFilterOrders}
-            />
+            {/* Removed Filter by Date Range section */}
 
-            {orders.length > 0 && <OrdersTable title="Orders (Date Range)" orders={orders} />}
-
-            {/* By Day */}
+            {/* By Day Filter */}
             <DateFilter
                 title="Filter Orders by Day"
                 dayOnly
@@ -162,7 +134,14 @@ export default function AnalyticsPage() {
             />
             {ordersByDay.length > 0 && <OrdersTable title="Orders (By Day)" orders={ordersByDay} />}
 
-            {/* Top 5 */}
+            {/* Debug output to display raw response from the byDay endpoint */}
+            {dayResponse && (
+                <pre className="bg-gray-100 p-2 mt-4 rounded text-xs overflow-auto">
+                    {dayResponse}
+                </pre>
+            )}
+
+            {/* Top 5 Items Section */}
             <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto border border-gray-300">
                 <h2 className="text-xl font-bold mb-4">Top 5 Items Sold</h2>
                 <button onClick={fetchTop5} className="bg-black text-white px-4 py-2 rounded mb-4 border border-gray-300">
@@ -196,43 +175,39 @@ const OrdersTable = ({ title, orders }: { title: string; orders: Order[] }) => (
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-200">
-            <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Total Price</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Tip</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
-            </tr>
+                <tr>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Total Price</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Tip</th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
+                </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
-            {orders.map((order) => (
-                <tr key={order.orderId} className="hover:bg-gray-100">
-                    <td className="px-4 py-2">{order.orderId}</td>
-                    <td className="px-4 py-2">{new Date(order.timestamp).toLocaleString()}</td>
-                    <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
-                    <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
-                    <td className="px-4 py-2">{order.status}</td>
-                </tr>
-            ))}
+                {orders.map((order) => (
+                    <tr key={order.orderId} className="hover:bg-gray-100">
+                        <td className="px-4 py-2">{order.orderId}</td>
+                        <td className="px-4 py-2">{new Date(order.timestamp).toLocaleString()}</td>
+                        <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
+                        <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
+                        <td className="px-4 py-2">{order.status}</td>
+                    </tr>
+                ))}
             </tbody>
         </table>
     </div>
 );
 
 const DateFilter = ({
-                        title,
-                        startDate,
-                        endDate,
-                        onStartChange,
-                        onEndChange,
-                        onSubmit,
-                        dayOnly = false,
-                    }: {
+    title,
+    startDate,
+    onStartChange,
+    onSubmit,
+    dayOnly = false,
+}: {
     title: string;
     startDate: string;
-    endDate?: string;
     onStartChange: (s: string) => void;
-    onEndChange?: (s: string) => void;
     onSubmit: () => void;
     dayOnly?: boolean;
 }) => (
@@ -248,17 +223,6 @@ const DateFilter = ({
                     onChange={(e) => onStartChange(e.target.value)}
                 />
             </div>
-            {!dayOnly && endDate && onEndChange && (
-                <div>
-                    <label className="block text-gray-700">End Date</label>
-                    <input
-                        type="date"
-                        className="mt-1 p-2 border border-gray-300 rounded w-48 bg-white text-black"
-                        value={endDate}
-                        onChange={(e) => onEndChange(e.target.value)}
-                    />
-                </div>
-            )}
             <button
                 onClick={onSubmit}
                 className="bg-black text-white px-4 py-2 rounded mt-4 md:mt-6 border border-gray-300"

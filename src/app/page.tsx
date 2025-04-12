@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
       <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-4xl text-center">
-          <h1 className={`text-6xl font-extrabold mb-8 drop-shadow-md uppercase ${megrim.className}`}>
+          <h1 className={`text-6xl font-extrabold mb-8 drop-shadow-md uppercase`}>
             Welcome to Megrim
           </h1>
 
