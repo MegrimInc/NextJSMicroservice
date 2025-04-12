@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-// Accept a prop for the Megrim font class
 interface AppBarProps {
   megrimFont: string;
 }
@@ -34,34 +33,36 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   };
 
   return (
-    <header className="bg-gray-900 shadow-md font-sans">
-      {/* Removed container mx-auto so that the nav spans full width */}
+    <header
+  className="bg-gradient-to-r from-black via-gray-900 to-gray-700 shadow-md font-sans border-b-2 border-solid"
+  style={{ borderImage: "linear-gradient(to right, rgba(255,255,255,0.2), rgba(100,100,100,0.5), rgba(0,0,0,1)) 1" }}
+>
       <nav className="flex items-center justify-between w-full py-4 px-6 rounded-b-xl">
-        <div className={`text-3xl font-extrabold tracking-wide text-white drop-shadow-sm ${megrimFont}`}>
+        <div className={`text-2xl font-extrabold tracking-wide text-white drop-shadow-sm ${megrimFont}`}>
           Megrim
         </div>
         <ul className="flex space-x-6 text-lg font-medium text-white">
           <li>
-            <Link href="/" className="hover:text-orange-400 transition duration-200">
+            <Link href="/" className="hover:text-gray-300 transition duration-200">
               Home
             </Link>
           </li>
           {isLoggedIn ? (
             <>
               <li>
-                <Link href="/menu" className="hover:text-orange-400 transition duration-200">
-                  Menu
+                <Link href="/menu" className="hover:text-gray-300 transition duration-200">
+                  Inventory
                 </Link>
               </li>
               <li>
-                <Link href="/analytics" className="hover:text-orange-400 transition duration-200">
+                <Link href="/analytics" className="hover:text-gray-300 transition duration-200">
                   Analytics
                 </Link>
               </li>
               <li>
                 <button
                   onClick={handleLogout}
-                  className="hover:text-red-400 transition duration-200"
+                  className="hover:text-gray-300 transition duration-200"
                 >
                   Logout
                 </button>
@@ -70,12 +71,12 @@ export default function AppBar({ megrimFont }: AppBarProps) {
           ) : (
             <>
               <li>
-                <Link href="/login" className="hover:text-orange-400 transition duration-200">
+                <Link href="/login" className="hover:text-gray-300 transition duration-200">
                   Login
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="hover:text-orange-400 transition duration-200">
+                <Link href="/register" className="hover:text-gray-300 transition duration-200">
                   Register
                 </Link>
               </li>

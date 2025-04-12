@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { Megrim } from "next/font/google";
 import React from "react";
 import AppBar from "@/components/ui/core/AppBar";
-import Footer from "@/components/ui/core/Footer";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -35,7 +34,6 @@ export default function RootLayout({
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AppBar megrimFont={megrim.className} />
         <main className="min-h-screen flex flex-col">{children}</main>
-        <Footer />
         </body>
         </html>
     );

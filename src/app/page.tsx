@@ -1,53 +1,128 @@
-import { Megrim } from "next/font/google";
+"use client";
 
-const megrim = Megrim({
-  subsets: ["latin"],
-  weight: "400",
-});
+import { FaCloud, FaGift, FaChartLine } from "react-icons/fa"; 
+import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
-      <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-4xl text-center">
-          <h1 className={`text-6xl font-extrabold mb-8 drop-shadow-md uppercase`}>
-            Welcome to Megrim
-          </h1>
-
-          <p className="text-2xl mb-12 text-gray-700 leading-relaxed">
-            Your Megrim Management Platform — Megrim helps you track sales, customize menus, and grow fast.
-          </p>
-
-          <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-300">
-            <h2 className="text-4xl font-bold mb-6 text-black">
-              Get Started in 4 Simple Steps:
-            </h2>
-            <ol className="list-decimal list-inside space-y-4 text-xl text-black">
-              <li>
-                <strong>Register your business</strong> using the{" "}
-                <span className="underline font-semibold">Register</span> tab. Fill out your name, hours, address, and
-                email.
-              </li>
-              <li>
-                After registering, you'll be redirected to the <span className="underline font-semibold">Stripe Dashboard</span> to
-                add your payment information.
-              </li>
-              <li>
-                Then head to the {" "}
-                <span className="underline font-semibold">Menu</span> page where you add your products and pricing.
-              </li>
-              <li>
-                Use the{" "}
-                <span className="underline font-semibold">Analytics</span> tab to track revenue and customer behavior.
-              </li>
-              <li>
-                When finished, click <span className="underline font-semibold">Logout</span> to sign out securely.
-              </li>
-            </ol>
+    <div className="bg-white w-full min-h-screen font-sans">
+      {/* Hero Section with Cloud-Based Ordering & Rewards Focus */}
+      <header className="relative overflow-hidden bg-gradient-to-r from-black via-gray-900 to-gray-700 pb-32">
+        <nav className="flex items-center justify-between max-w-7xl mx-auto py-6 px-4">
+          {/* Removed "Megrim" text and its Megrim font styling */}
+          <div className="text-3xl text-white font-extrabold drop-shadow-md">
+            {/* Optionally, insert a logo image here */}
           </div>
-          <div className="mt-10 p-4 bg-gray-100 border border-gray-400 rounded-md text-center text-gray-800">
-            Need help? Contact your Megrim onboarding specialist.
+          {/* Navigation is handled elsewhere */}
+        </nav>
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-16 text-white text-center">
+          <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight drop-shadow-lg uppercase">
+            Transform Your Orders & Rewards
+          </h1>
+          <p className="mt-6 text-xl max-w-2xl mx-auto">
+            Megrim delivers cloud-based ordering, seamless digital rewards, and real-time analytics—empowering your business to grow revenue and foster customer loyalty.
+          </p>
+          <div className="mt-8">
+            <Link href="/register">
+              <button className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition">
+                Get Started
+              </button>
+            </Link>
+            <button className="inline-block bg-transparent border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition">
+              Learn More
+            </button>
           </div>
         </div>
+        {/* Decorative floating shape */}
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-white/20 to-white/10 rounded-full blur-3xl transform translate-x-1/4 translate-y-1/4"></div>
+      </header>
+
+      {/* Features Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-4xl font-bold text-gray-900 text-center mb-10">
+            Power Your Business with Megrim
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard
+              title="Cloud-Based Ordering"
+              description="Streamline orders directly from your customers with an intuitive, scalable cloud system."
+              icon={<FaCloud className="text-black text-4xl" />}
+            />
+            <FeatureCard
+              title="Digital Rewards & Points"
+              description="Boost loyalty by rewarding every order. Track both cash and point-based transactions seamlessly."
+              icon={<FaGift className="text-black text-4xl" />}
+            />
+            <FeatureCard
+              title="Real-Time Analytics"
+              description="Make smarter decisions with instant revenue tracking, customer insights, and performance dashboards."
+              icon={<FaChartLine className="text-black text-4xl" />}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Call-to-Action Section */}
+      <section className="py-16 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-extrabold mb-4 drop-shadow-md">
+            Ready to Boost Your Business?
+          </h2>
+          <p className="text-lg mb-10 opacity-90">
+            Integrate orders, rewards, and analytics into one seamless experience.
+          </p>
+          <Link href="/register">
+            <button className="bg-black px-6 py-3 text-white rounded-md hover:bg-gray-800 transition">
+              Get Started for Free
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer Section */}
+      <footer className="bg-black text-gray-400 py-8">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between">
+          <p className="text-sm">&copy; {new Date().getFullYear()} Megrim, Inc. All rights reserved.</p>
+          <ul className="flex space-x-4 text-sm mt-4 sm:mt-0">
+            <li>
+              <a href="#" className="hover:text-gray-200">
+                Privacy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-gray-200">
+                Terms
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-gray-200">
+                Security
+              </a>
+            </li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  icon: JSX.Element;
+}
+
+function FeatureCard({ title, description, icon }: FeatureCardProps) {
+  return (
+    <div className="bg-white rounded-lg p-6 shadow hover:shadow-xl transition flex flex-col items-center">
+      <div className="mb-4">
+        {icon}
       </div>
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-600 text-center leading-relaxed">{description}</p>
+    </div>
   );
 }
