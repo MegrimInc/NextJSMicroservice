@@ -27,7 +27,7 @@ export default function LoginForm() {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://www.barzzy.site/newsignup/login", {
+      const response = await fetch("http://34.207.184.72:8080/newsignup/login", {
         method: "POST",
         body: JSON.stringify({
           email: formData.email,

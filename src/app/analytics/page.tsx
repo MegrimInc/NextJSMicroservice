@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 
-const BASE_URL = "https://www.barzzy.site"; // Used only for fetching summary numbers
+// Base URL for your test server
+const BASE_URL = "https://www.barzzy.site";
 
-// ---- Interfaces ----
 interface GeneralData {
     revenue: number;
     drinks: number;
@@ -13,414 +13,49 @@ interface GeneralData {
     points: number;
 }
 
+interface DrinkCount {
+    drinkId: number;
+    drinkName: string;
+    doublePrice: number;
+    soldWithDollars: number;
+    soldWithPoints: number;
+    totalSold: number;
+}
+
 interface Order {
     orderId: number;
     barId: number;
-    customer: string;
+    userId: number;
     timestamp: string;
     totalPointPrice: number;
     totalRegularPrice: number;
     tip: number;
+    inAppPayments: boolean;
     status: string;
+    station: string;
+    tipsClaimed: string;
     pointOfSale: boolean;
-    drinks: string;
+    // You can add other fields as desired
 }
 
-// ---- Hard-coded Data ----
-
-// Hard-code 30 sample orders for "2025-04-04" with timestamps between 20:05 and 23:59
-// Hard-code 30 sample orders for "2025-04-04" with timestamps between 20:05 and 23:59
-const HARDCODED_ORDERS = [
-    {
-        orderId: 1074,
-        barId: 55,
-        customer: "Alex Micheo",
-        timestamp: "2025-04-04T20:05:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 10.71,  // base + 5% tax
-        tip: 2.14,                 // 20% of 10.71
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Shot"
-    },
-    {
-        orderId: 1075,
-        barId: 55,
-        customer: "Mathias yohannes",
-        timestamp: "2025-04-04T20:06:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 15.75,
-        tip: 3.15,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Shot, Tequila Shot"
-    },
-    {
-        orderId: 1076,
-        barId: 55,
-        customer: "Masen Price",
-        timestamp: "2025-04-04T20:24:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 9.45,
-        tip: 1.89,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Soda"
-    },
-    {
-        orderId: 1077,
-        barId: 55,
-        customer: "Savana McLaughlin",
-        timestamp: "2025-04-04T20:41:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 11.55,
-        tip: 2.31,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Red Bull"
-    },
-    {
-        orderId: 1078,
-        barId: 55,
-        customer: "brandon Barenz",
-        timestamp: "2025-04-04T20:51:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.25,
-        tip: 1.05,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Rum Shot"
-    },
-    {
-        orderId: 1079,
-        barId: 55,
-        customer: "alex hetzel",
-        timestamp: "2025-04-04T21:00:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 12.60,
-        tip: 2.52,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Sprite"
-    },
-    {
-        orderId: 1080,
-        barId: 55,
-        customer: "Rohan Chodapunedi",
-        timestamp: "2025-04-04T21:22:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.46,
-        tip: 1.09,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Shot"
-    },
-    {
-        orderId: 1081,
-        barId: 55,
-        customer: "ani china",
-        timestamp: "2025-04-04T21:31:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 20.16,
-        tip: 4.03,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Red Bull, Tequila Soda"
-    },
-    {
-        orderId: 1082,
-        barId: 55,
-        customer: "Kshitij sharma",
-        timestamp: "2025-04-04T21:40:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 9.03,
-        tip: 1.81,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Coke"
-    },
-    {
-        orderId: 1083,
-        barId: 55,
-        customer: "Riya Gunda",
-        timestamp: "2025-04-04T21:43:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 12.39,
-        tip: 2.48,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Lemon Drop"
-    },
-    {
-        orderId: 1084,
-        barId: 55,
-        customer: "Sarah Hernandez",
-        timestamp: "2025-04-04T21:57:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.04,
-        tip: 1.01,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Rum Shot"
-    },
-    {
-        orderId: 1085,
-        barId: 55,
-        customer: "bill nicoue",
-        timestamp: "2025-04-04T22:05:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 19.11,
-        tip: 3.82,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Sprite, Tequila Soda"
-    },
-    {
-        orderId: 1086,
-        barId: 55,
-        customer: "Sarthak Shrivastava",
-        timestamp: "2025-04-04T22:07:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.46,
-        tip: 1.09,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Shot"
-    },
-    {
-        orderId: 1087,
-        barId: 55,
-        customer: "arav tripathi",
-        timestamp: "2025-04-04T22:19:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 22.05,
-        tip: 4.41,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Shot, Vodka Red Bull"
-    },
-    {
-        orderId: 1088,
-        barId: 55,
-        customer: "jake thomas",
-        timestamp: "2025-04-04T22:22:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 9.66,
-        tip: 1.93,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Coke"
-    },
-    {
-        orderId: 1089,
-        barId: 55,
-        customer: "Wyatt Smith",
-        timestamp: "2025-04-04T22:28:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 11.97,
-        tip: 2.39,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Lemon Drop"
-    },
-    {
-        orderId: 1090,
-        barId: 55,
-        customer: "Gavin Byrnes",
-        timestamp: "2025-04-04T22:28:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 15.75,
-        tip: 3.15,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Rum Shot, Vodka Red Bull"
-    },
-    {
-        orderId: 1091,
-        barId: 55,
-        customer: "esteban Herdocia",
-        timestamp: "2025-04-04T22:33:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 12.81,
-        tip: 2.56,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Sprite"
-    },
-    {
-        orderId: 1092,
-        barId: 55,
-        customer: "Jonathan Michael",
-        timestamp: "2025-04-04T22:40:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 9.45,
-        tip: 1.89,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Soda"
-    },
-    {
-        orderId: 1093,
-        barId: 55,
-        customer: "Caleb Gumpf",
-        timestamp: "2025-04-04T22:47:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 10.92,
-        tip: 2.18,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Red Bull"
-    },
-    {
-        orderId: 1094,
-        barId: 55,
-        customer: "Amanuel Sisay",
-        timestamp: "2025-04-04T22:51:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.67,
-        tip: 1.13,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Shot"
-    },
-    {
-        orderId: 1095,
-        barId: 55,
-        customer: "ayman adam",
-        timestamp: "2025-04-04T22:53:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 15.75,
-        tip: 3.15,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Shot, Tequila Shot"
-    },
-    {
-        orderId: 1096,
-        barId: 55,
-        customer: "Nathan Tieu",
-        timestamp: "2025-04-04T22:57:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 15.54,
-        tip: 3.11,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Soda, Rum Shot"
-    },
-    {
-        orderId: 1097,
-        barId: 55,
-        customer: "Malia Bullen",
-        timestamp: "2025-04-04T23:15:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 13.65,
-        tip: 2.73,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Sprite"
-    },
-    {
-        orderId: 1098,
-        barId: 55,
-        customer: "Nicholas Creamer",
-        timestamp: "2025-04-04T23:22:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 10.29,
-        tip: 2.06,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Lemon Drop"
-    },
-    {
-        orderId: 1099,
-        barId: 55,
-        customer: "Connor Fabrie",
-        timestamp: "2025-04-04T23:35:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 21.00,
-        tip: 4.20,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Red Bull, Vodka Coke"
-    },
-    {
-        orderId: 1100,
-        barId: 55,
-        customer: "carleigh brescia",
-        timestamp: "2025-04-04T23:44:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.25,
-        tip: 1.05,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Tequila Shot"
-    },
-    {
-        orderId: 1101,
-        barId: 55,
-        customer: "Eliana Tamrat",
-        timestamp: "2025-04-04T23:51:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 10.29,
-        tip: 2.06,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Rum Shot, Vodka Shot"
-    },
-    {
-        orderId: 1102,
-        barId: 55,
-        customer: "Dj chavis",
-        timestamp: "2025-04-04T23:55:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 5.25,
-        tip: 1.05,
-        status: "Completed",
-        pointOfSale: false,
-        drinks: "Vodka Shot"
-    },
-    {
-        orderId: 1103,
-        barId: 55,
-        customer: "Caroline Thornburg",
-        timestamp: "2025-04-04T23:59:00",
-        totalPointPrice: 0,
-        totalRegularPrice: 17.85,
-        tip: 3.57,
-        status: "Completed",
-        pointOfSale: true,
-        drinks: "Vodka Red Bull, Tequila Shot"
-    }
-];
-
-
-
-
-// Hard-coded top 5 items sold
-const HARDCODED_TOP5: Record<string, number> = {
-    "Vodka Shot": 334,
-    "Tequila Shot": 179,
-    "Vodka Coke": 98,
-    "Lemon Drop": 74,
-    "Trash Can": 51,
-};
-
 export default function AnalyticsPage() {
-    // State for summary cards (fetched from backend)
+    // General analytics states
     const [generalData, setGeneralData] = useState<GeneralData | null>(null);
-    // Hard-coded orders by day
-    const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
-    // Error state
+    const [drinkCounts, setDrinkCounts] = useState<DrinkCount[]>([]);
+    const [visibleCount, setVisibleCount] = useState<number>(10);
     const [error, setError] = useState<string>("");
 
-    // Grab credentials for the summary fetch
-    const barEmail = typeof window !== "undefined" ? localStorage.getItem("barEmail") ?? "" : "";
-    const barPW = typeof window !== "undefined" ? localStorage.getItem("barPW") ?? "" : "";
+    // Orders by day state
+    const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
+    const [selectedDay, setSelectedDay] = useState<string>(""); // expects "yyyy-MM-dd"
 
-    // Hard-code the dayFilter to "2025-04-04"
-    const [dayFilter, setDayFilter] = useState<string>("yyyy-mm-dd");
+    // Credentials
+    const barEmail =
+        typeof window !== "undefined" ? localStorage.getItem("barEmail") ?? "" : "";
+    const barPW =
+        typeof window !== "undefined" ? localStorage.getItem("barPW") ?? "" : "";
 
-    // Fetch general data (for summary cards)
+    // --- Fetch General Analytics Data ---
     useEffect(() => {
         if (!barEmail || !barPW) {
             setError("Missing credentials. Please log in again.");
@@ -428,7 +63,9 @@ export default function AnalyticsPage() {
         }
         const fetchGeneralData = async () => {
             try {
-                const url = `${BASE_URL}/orders/generalData?barEmail=${encodeURIComponent(barEmail)}&barPW=${encodeURIComponent(barPW)}`;
+                const url = `${BASE_URL}/orders/generalData?barEmail=${encodeURIComponent(
+                    barEmail
+                )}&barPW=${encodeURIComponent(barPW)}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error("Failed to fetch general data");
                 const data = await res.json();
@@ -440,117 +77,200 @@ export default function AnalyticsPage() {
         fetchGeneralData();
     }, [barEmail, barPW]);
 
-    // "Filter Orders by Day" simply sets ordersByDay to our hard-coded sample orders
-    const handleFilterByDay = () => {
-        setOrdersByDay(HARDCODED_ORDERS);
+    // --- Fetch Drink Counts for Top Selling Items ---
+    useEffect(() => {
+        if (!barEmail || !barPW) return;
+        const fetchDrinkCounts = async () => {
+            try {
+                const url = `${BASE_URL}/orders/allDrinkCounts?barEmail=${encodeURIComponent(
+                    barEmail
+                )}&barPW=${encodeURIComponent(barPW)}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("Failed to fetch drink counts");
+                const json = await res.json();
+                setDrinkCounts(json.data || []);
+            } catch (err: any) {
+                console.error("Error fetching drink counts:", err);
+            }
+        };
+        fetchDrinkCounts();
+    }, [barEmail, barPW]);
+
+    // --- Fetch Orders by Day ---
+    const searchOrdersByDay = async () => {
+        if (!barEmail || !barPW || !selectedDay) return;
+        try {
+            const url = `${BASE_URL}/orders/byDay?barEmail=${encodeURIComponent(
+                barEmail
+            )}&barPW=${encodeURIComponent(barPW)}&date=${encodeURIComponent(selectedDay)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Failed to fetch orders for the day");
+            const json = await res.json();
+            setOrdersByDay(json.orders || []);
+        } catch (err: any) {
+            console.error("Error fetching orders by day:", err);
+        }
     };
 
+    // Expandable Table Controls for drinkCounts
+    const showAll = () => setVisibleCount(drinkCounts.length);
+    const showLess = () => setVisibleCount(10);
+    const showMore = () => setVisibleCount((prev) => prev + 10);
+    const isAllVisible = visibleCount >= drinkCounts.length;
+
     return (
-        <div className="min-h-screen bg-white text-black py-8 px-4">
-            <h1 className="text-3xl font-bold mb-6 text-center">Analytics Dashboard</h1>
+        <div className="min-h-screen bg-gray-100 text-black py-8 px-4">
+            <div className="max-w-7xl mx-auto">
+                <header className="mb-8 text-center">
+                    <h1 className="text-5xl font-extrabold">Analytics Dashboard</h1>
+                </header>
 
-            {error && (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-                    {error}
-                </div>
-            )}
-
-            {/* Summary Cards */}
-            {generalData && (
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 max-w-5xl mx-auto">
-                    <Card title="Revenue ($)" value={`$${generalData.revenue.toFixed(2)}`} />
-                    <Card title="Revenue (pts)" value={`${generalData.points} pts`} />
-                    <Card title="Units Sold ($)" value={`${generalData.drinks}`} />
-                    <Card title="Units Sold (pts)" value={`${generalData.drinksPoints}`} />
-                    <Card title="Tips" value={`$${generalData.tips.toFixed(2)}`} />
-                </div>
-            )}
-
-            {/* Filter Orders by Day (Hard-coded) */}
-            <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto border border-gray-300">
-                <h2 className="text-xl font-bold mb-4">Filter Orders by Day</h2>
-                <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
-                    <div>
-                        <label className="block text-gray-700">Select Date</label>
-                        <input
-                            type="date"
-                            className="mt-1 p-2 border border-gray-300 rounded w-48 bg-white text-black"
-                            value={dayFilter}
-                            onChange={(e) => setDayFilter(e.target.value)}
-                        />
+                {error && (
+                    <div className="bg-red-200 border-l-4 border-red-600 text-red-900 p-4 mb-6 rounded">
+                        {error}
                     </div>
-                    <button
-                        onClick={handleFilterByDay}
-                        className="bg-black text-white px-4 py-2 rounded mt-4 md:mt-6 border border-gray-300"
-                    >
-                        Filter Orders by Day
-                    </button>
+                )}
+
+                {/* --- General Analytics Cards --- */}
+                {generalData && (
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                        <Card title="Revenue ($)" value={`$${generalData.revenue.toFixed(2)}`} />
+                        <Card title="Revenue (pts)" value={`${generalData.points} pts`} />
+                        <Card title="Units Sold ($)" value={`${generalData.drinks}`} />
+                        <Card title="Units Sold (pts)" value={`${generalData.drinksPoints}`} />
+                        <Card title="Tips" value={`$${generalData.tips.toFixed(2)}`} />
+                    </div>
+                )}
+
+                {/* --- Expandable Drink Stats Table --- */}
+                <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+                    <div className="bg-gray-200 p-6">
+                        <h2 className="text-3xl font-bold text-center">Top Selling Items</h2>
+                    </div>
+                    <div className="p-6">
+                        {drinkCounts.length > 0 ? (
+                            <>
+                                <table className="min-w-full divide-y divide-gray-300 font-sans">
+                                    <thead className="bg-gray-300">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Item Name</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">$Price</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold font-bold">Total Sold</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Sold with $</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Sold with Points</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-300">
+                                    {drinkCounts.slice(0, visibleCount).map((drink) => (
+                                        <tr key={drink.drinkId} className="hover:bg-gray-100">
+                                            <td className="px-4 py-2">{drink.drinkName}</td>
+                                            <td className="px-4 py-2">${drink.doublePrice.toFixed(2)}</td>
+                                            <td className="px-4 py-2 font-bold text-lg">{drink.totalSold}</td>
+                                            <td className="px-4 py-2">{drink.soldWithDollars}</td>
+                                            <td className="px-4 py-2">{drink.soldWithPoints}</td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                                <div className="mt-4 flex justify-center space-x-4">
+                                    {visibleCount < drinkCounts.length && (
+                                        <>
+                                            <button
+                                                onClick={showMore}
+                                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                                            >
+                                                Show More
+                                            </button>
+                                            <button
+                                                onClick={showAll}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                                            >
+                                                Show All
+                                            </button>
+                                        </>
+                                    )}
+                                    {visibleCount > 10 && (
+                                        <button
+                                            onClick={showLess}
+                                            className="px-4 py-2 bg-red-400 text-white rounded hover:bg-red-500 transition"
+                                        >
+                                            Show Less
+                                        </button>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-center text-gray-600">No items found.</p>
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {/* Orders Table */}
-            {ordersByDay.length > 0 && <OrdersTable title="Orders (By Day)" orders={ordersByDay} />}
-
-            {/* Top 5 Items Sold */}
-            <div className="bg-white shadow p-6 rounded mb-8 max-w-3xl mx-auto border border-gray-300">
-                <h2 className="text-3xl font-black mb-4 text-center">Top 5 Items Sold</h2>
-                <div className="space-y-2">
-                    {Object.entries(HARDCODED_TOP5).map(([name, qty]) => (
-                        <div key={name} className="flex justify-between border-b border-gray-200 pb-2">
-                            <span className="font-semibold text-lg">{name}</span>
-                            <span className="text-lg">{qty}</span>
+                {/* --- Orders by Day Section --- */}
+                <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+                    <div className="bg-gray-200 p-6">
+                        <h2 className="text-3xl font-bold text-center">Orders by Day</h2>
+                    </div>
+                    <div className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
+                            <label htmlFor="orderDate" className="text-lg font-semibold mb-2 md:mb-0">
+                                Select Date:
+                            </label>
+                            <input
+                                type="date"
+                                id="orderDate"
+                                className="border border-gray-400 p-2 rounded text-black"
+                                value={selectedDay}
+                                onChange={(e) => setSelectedDay(e.target.value)}
+                            />
+                            <button
+                                onClick={searchOrdersByDay}
+                                className="mt-2 md:mt-0 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                            >
+                                Search Orders
+                            </button>
                         </div>
-                    ))}
+                        {ordersByDay.length > 0 ? (
+                            <table className="min-w-full divide-y divide-gray-300 font-sans">
+                                <thead className="bg-gray-300">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Total ($)</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Tip ($)</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-300">
+                                {ordersByDay.map((order) => (
+                                    <tr key={order.orderId} className="hover:bg-gray-100">
+                                        <td className="px-4 py-2">{order.orderId}</td>
+                                        <td className="px-4 py-2">
+                                            {new Date(order.timestamp).toLocaleString("en-US", {
+                                                dateStyle: "short",
+                                                timeStyle: "short",
+                                                timeZone: "America/New_York",
+                                            })}
+                                        </td>
+                                        <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
+                                        <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
+                                        <td className="px-4 py-2">{order.status}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p className="text-center text-gray-600">No orders found for this day.</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-// Reusable Card Component
 const Card = ({ title, value }: { title: string; value: string }) => (
-    <div className="bg-white shadow p-4 rounded border border-gray-300">
-        <h2 className="font-semibold">{title}</h2>
-        <p className="text-2xl">{value}</p>
+    <div className="bg-white bg-opacity-90 shadow-lg rounded p-4 text-gray-900">
+        <h2 className="font-bold text-xl">{title}</h2>
+        <p className="text-3xl">{value}</p>
     </div>
 );
-
-// Reusable OrdersTable Component
-function OrdersTable({ title, orders }: { title: string; orders: Order[] }) {
-    return (
-        <div className="max-w-5xl mx-auto bg-white shadow p-6 rounded overflow-x-auto border border-gray-300 mb-8">
-            <h2 className="text-xl font-bold mb-4">{title}</h2>
-            <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-200">
-                <tr>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Customer</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Items</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Total Price</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Tip</th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-300">
-                {orders.map((order) => (
-                    <tr key={order.orderId} className="hover:bg-gray-100">
-                        <td className="px-4 py-2">{order.orderId}</td>
-                        <td className="px-4 py-2">{order.customer}</td>
-                        <td className="px-4 py-2">{order.drinks}</td>
-                        <td className="px-4 py-2">
-                            {new Date(order.timestamp).toLocaleString(undefined, {
-                                dateStyle: "short",
-                                timeStyle: "short",
-                            })}
-                        </td>
-                        <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
-                        <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
-                        <td className="px-4 py-2">{order.status}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
