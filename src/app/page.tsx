@@ -2,10 +2,35 @@
 
 // @ts-ignore
 import { FaCloud, FaGift, FaChartLine } from "react-icons/fa";
-import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react"; // Add this at the top
 
 export default function HomePage() {
+
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGetStarted = async () => {
+    setIsLoading(true);
+    try {
+      // Call backend API to create Stripe account and get onboarding URL
+      const response = await fetch('/api/create-stripe-account', {
+        method: 'POST'
+      });
+      
+      if (!response.ok) throw new Error('Failed to create account');
+      
+      const { onboardingUrl } = await response.json();
+      
+      // Redirect to Stripe onboarding
+      window.location.href = onboardingUrl;
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white w-full min-h-screen font-sans">
       {/* Hero Section with Cloud-Based Ordering & Rewards Focus */}
@@ -26,14 +51,20 @@ export default function HomePage() {
             Megrim delivers cloud-based ordering, seamless digital rewards, and real-time analytics—empowering your business to grow revenue and foster customer loyalty.
           </p>
           <div className="mt-8">
-            <Link href="/register">
-              <button className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition">
-                Get Started
-              </button>
-            </Link>
-            <button className="inline-block bg-transparent border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition">
-              Learn More
-            </button>
+          <button 
+  onClick={handleGetStarted} // Remove Link wrapper
+  className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
+>
+  {isLoading ? 'Creating Account...' : 'Get Started'}
+</button>
+<a 
+  href="https://www.linkedin.com/company/megrim/" 
+  target="_blank" 
+  rel="noopener noreferrer"
+  className="inline-block bg-transparent border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
+>
+  Learn More
+</a>
           </div>
         </div>
         {/* Decorative floating shape */}
@@ -75,11 +106,12 @@ export default function HomePage() {
           <p className="text-lg mb-10 opacity-90">
             Integrate orders, rewards, and analytics into one seamless experience.
           </p>
-          <Link href="/register">
-            <button className="bg-black px-6 py-3 text-white rounded-md hover:bg-gray-800 transition">
-              Get Started for Free
-            </button>
-          </Link>
+          <button 
+  onClick={handleGetStarted} // Remove Link wrapper
+  className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
+>
+  {isLoading ? 'Creating Account...' : 'Get Started'}
+</button>
         </div>
       </section>
 
