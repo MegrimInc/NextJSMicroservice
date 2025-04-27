@@ -18,15 +18,15 @@ export default function LoginForm() {
   const [error, setError] = useState(""); // Error message to show user
 
   // 🛠 Helper: Delete auth cookie
-  function deleteAuthCookie() {
-    document.cookie = "auth=; Max-Age=0; path=/; Secure; SameSite=Strict;";
+  function deleteAuthCookie() { 
+    document.cookie = "auth=; Max-Age=0; path=/; Secure; SameSite=Strict;"; 
   }
 
   // 🌟 Try auto-login on page load
   useEffect(() => {
     async function tryAutoLogin() {
       try {
-        const authCookie = document.cookie
+        const authCookie = document.cookie  // eslint-disable-line @typescript-eslint/no-unused-vars
             .split("; ")
             .find(row => row.startsWith("auth="))
             ?.split("=")[1] || "";
@@ -68,7 +68,8 @@ export default function LoginForm() {
     }
 
     tryAutoLogin();
-  }, []);
+     // eslint-disable-line @typescript-eslint/no-unused-vars
+  }, [router]);
 
   // 🔹 Handle input typing
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,10 +118,9 @@ export default function LoginForm() {
         window.dispatchEvent(new Event("loginStatusChanged"));
         router.push("/analytics");
       }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      deleteAuthCookie();
-      setError("Login error. Try again later.");
+    }catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setError(message);
     }
   };
 

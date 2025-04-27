@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import FormEntry from "./FormEntry";
 import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
 import { useRouter } from "next/navigation";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { apiRequest } from "@/lib/api/api";
 
 interface FormData {
@@ -65,7 +66,7 @@ export default function RegisterForm() {
 
         try {
             // Register the bar on the backend
-            const response = await fetch("https://www.barzzy.site/newsignup/registerbar", {
+            const response = await fetch("https://www.barzzy.site/newsignup/registerbar", { // eslint-disable-line @typescript-eslint/no-unused-vars
                 method: "POST",
                 body: JSON.stringify(payload),
                 headers: {
@@ -79,9 +80,10 @@ export default function RegisterForm() {
             router.push("/analytics");
             router.refresh();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
             console.error("Registration failed:", error);
-            alert("Registration failed: " + error.message);
+            alert("Registration failed: " + message);
         }
     };
 

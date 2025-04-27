@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
     useEffect(() => {
         const fetchGeneralData = async () => {
             try {
-                let url = `${BASE_URL}/orders/generalData`;
+                const url = `${BASE_URL}/orders/generalData`;
 
                 const res = await fetch(url, {
                     method: "GET",
@@ -67,8 +67,11 @@ export default function AnalyticsPage() {
 
                 const data = await res.json();
                 setGeneralData(data);
-            } catch (err: any) {
-                setError("Error: " + err.message);
+            }   catch (err: unknown) {
+                const errorMessage = err instanceof Error 
+                  ? err.message 
+                  : "Unknown error occurred";
+                setError(`Error: ${errorMessage}`);
             }
         };
 
@@ -94,9 +97,11 @@ export default function AnalyticsPage() {
 
                 const json = await res.json();
                 setDrinkCounts(json.data || []);
-            } catch (err: any) {
-                console.error("Error fetching drink counts:", err);
-                setError("Error fetching top selling items.");
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error 
+                  ? err.message 
+                  : "Unknown error occurred";
+                setError(`Error: ${errorMessage}`);
             }
         };
 
@@ -126,9 +131,11 @@ export default function AnalyticsPage() {
 
             const json = await res.json();
             setOrdersByDay(json.orders || []);
-        } catch (err: any) {
-            console.error("Error fetching orders by day:", err);
-            setError("Error fetching orders by day.");
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error 
+              ? err.message 
+              : "Unknown error occurred";
+            setError(`Error: ${errorMessage}`);
         }
     };
 
