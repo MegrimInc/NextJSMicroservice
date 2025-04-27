@@ -15,7 +15,7 @@ export default function HomePage() {
     setIsLoading(true);
     try {
       // Call backend API to create Stripe account and get onboarding URL
-      const response = await fetch('/api/create-stripe-account', {
+      const response = await fetch('/api/create-connected-account', {
         method: 'POST'
       });
       
