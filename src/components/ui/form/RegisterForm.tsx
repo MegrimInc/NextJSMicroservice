@@ -90,10 +90,9 @@ export default function RegisterForm() {
             alert("Registration successful! Redirecting to analytics...");
             router.push("/analytics");
             router.refresh();
-        } catch (error: any) {
+        }  catch (error: unknown) {
             console.error("Registration error:", error);
-            alert("Registration failed: " + error.message);
-        }
+          }
     };
 
     return (
