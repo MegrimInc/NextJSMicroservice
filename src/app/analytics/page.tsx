@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 
-// Adjust this to your actual domain or HTTP if not using SSL
 const BASE_URL = "https://www.barzzy.site";
 
 // --- Interfaces ---
@@ -36,111 +35,111 @@ interface Order {
     station: string;
     tipsClaimed: string;
     pointOfSale: boolean;
-    // add more fields as needed
 }
 
 export default function AnalyticsPage() {
     const [generalData, setGeneralData] = useState<GeneralData | null>(null);
-
-    // For top-selling items
     const [drinkCounts, setDrinkCounts] = useState<DrinkCount[]>([]);
     const [visibleCount, setVisibleCount] = useState<number>(10);
-
-    // For orders by single day
     const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
-    const [selectedDay, setSelectedDay] = useState<string>(""); // e.g. "2025-04-14"
-
-    // For date/time range on general data
-    const [startDateTime, setStartDateTime] = useState<string>(""); // user picks a local date/time
+    const [selectedDay, setSelectedDay] = useState<string>("");
+    const [startDateTime, setStartDateTime] = useState<string>("");
     const [endDateTime, setEndDateTime] = useState<string>("");
-
-    // For errors
     const [error, setError] = useState<string>("");
 
-    // Credentials from localStorage
-    const barEmail =
-        typeof window !== "undefined" ? localStorage.getItem("barEmail") ?? "" : "";
-    const barPW =
-        typeof window !== "undefined" ? localStorage.getItem("barPW") ?? "" : "";
-
-    // 1) Fetch general data with optional time range
+    // --- Fetch General Data ---
     useEffect(() => {
-        if (!barEmail || !barPW) {
-            setError("Missing credentials. Please log in again.");
-            return;
-        }
-
         const fetchGeneralData = async () => {
             try {
-                // Build the URL for generalData with optional start/end times
-                let url = `${BASE_URL}/orders/generalData?barEmail=${encodeURIComponent(
-                    barEmail
-                )}&barPW=${encodeURIComponent(barPW)}`;
+                const url = `${BASE_URL}/orders/generalData`;
 
-                // If user specified a start datetime, parse to epoch
-                if (startDateTime) {
-                    const startEpoch = new Date(startDateTime).getTime();
-                    url += `&start=${startEpoch}`;
-                }
-                // If user specified an end datetime, parse to epoch
-                if (endDateTime) {
-                    const endEpoch = new Date(endDateTime).getTime();
-                    url += `&end=${endEpoch}`;
+                const res = await fetch(url, {
+                    method: "GET",
+                    credentials: "include", // Include cookie
+                });
+
+                if (res.status === 401) {
+                    setError("Session expired. Please log in again.");
+                    return;
                 }
 
-                const res = await fetch(url);
                 if (!res.ok) throw new Error("Failed to fetch general data");
+
                 const data = await res.json();
                 setGeneralData(data);
-            } catch (err: any) {
-                setError("Error: " + err.message);
+            }   catch (err: unknown) {
+                const errorMessage = err instanceof Error 
+                  ? err.message 
+                  : "Unknown error occurred";
+                setError(`Error: ${errorMessage}`);
             }
         };
 
         fetchGeneralData();
-    }, [barEmail, barPW, startDateTime, endDateTime]);
+    }, []);
 
-    // 2) Fetch top selling items (allDrinkCounts)
+    // --- Fetch Top Selling Drinks ---
     useEffect(() => {
-        if (!barEmail || !barPW) return;
-
         const fetchDrinkCounts = async () => {
             try {
-                const url = `${BASE_URL}/orders/allDrinkCounts?barEmail=${encodeURIComponent(
-                    barEmail
-                )}&barPW=${encodeURIComponent(barPW)}`;
-                const res = await fetch(url);
+                const url = `${BASE_URL}/orders/allItemCounts`;
+                const res = await fetch(url, {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (res.status === 401) {
+                    setError("Session expired. Please log in again.");
+                    return;
+                }
+
                 if (!res.ok) throw new Error("Failed to fetch drink counts");
+
                 const json = await res.json();
                 setDrinkCounts(json.data || []);
-            } catch (err: any) {
-                console.error("Error fetching drink counts:", err);
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error 
+                  ? err.message 
+                  : "Unknown error occurred";
+                setError(`Error: ${errorMessage}`);
             }
         };
-        fetchDrinkCounts();
-    }, [barEmail, barPW]);
 
-    // 3) Orders by Day (single date)
+        fetchDrinkCounts();
+    }, []);
+
+    // --- Fetch Orders By Day ---
     const searchOrdersByDay = async () => {
-        if (!barEmail || !barPW || !selectedDay) {
+        if (!selectedDay) {
+            setError("Please select a date first.");
             return;
         }
+
         try {
-            const url = `${BASE_URL}/orders/byDay?barEmail=${encodeURIComponent(
-                barEmail
-            )}&barPW=${encodeURIComponent(barPW)}&date=${encodeURIComponent(
-                selectedDay
-            )}`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error("Failed to fetch orders for the day");
+            const url = `${BASE_URL}/orders/byDay?date=${encodeURIComponent(selectedDay)}`;
+            const res = await fetch(url, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (res.status === 401) {
+                setError("Session expired. Please log in again.");
+                return;
+            }
+
+            if (!res.ok) throw new Error("Failed to fetch orders by day");
+
             const json = await res.json();
             setOrdersByDay(json.orders || []);
-        } catch (err: any) {
-            console.error("Error fetching orders by day:", err);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error 
+              ? err.message 
+              : "Unknown error occurred";
+            setError(`Error: ${errorMessage}`);
         }
     };
 
-    // Expandable table controls
+    // --- Expandable Table Controls ---
     const showAll = () => setVisibleCount(drinkCounts.length);
     const showLess = () => setVisibleCount(10);
     const showMore = () => setVisibleCount((prev) => prev + 10);
@@ -159,7 +158,7 @@ export default function AnalyticsPage() {
                     </div>
                 )}
 
-                {/* --- TIME RANGE FILTER for General Data --- */}
+                {/* --- Time Range Filters --- */}
                 <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6 justify-center">
                     <div>
                         <label className="text-sm font-semibold">Start Date/Time</label>
@@ -181,7 +180,7 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                {/* --- General Data Summary Cards --- */}
+                {/* --- General Data Cards --- */}
                 {generalData && (
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                         <Card title="Revenue ($)" value={`$${generalData.revenue.toFixed(2)}`} />
@@ -192,7 +191,7 @@ export default function AnalyticsPage() {
                     </div>
                 )}
 
-                {/* --- Top Selling Items (allDrinkCounts) --- */}
+                {/* --- Top Selling Drinks Table --- */}
                 <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
                     <div className="bg-gray-200 p-6">
                         <h2 className="text-3xl font-bold text-center">Top Selling Items</h2>
@@ -203,39 +202,26 @@ export default function AnalyticsPage() {
                                 <table className="min-w-full divide-y divide-gray-300 font-sans">
                                     <thead className="bg-gray-300">
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-sm font-semibold">
-                                            Item Name
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-semibold">
-                                            $Price
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-semibold font-bold">
-                                            Total Sold
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-semibold">
-                                            Sold with $
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-semibold">
-                                            Sold with Points
-                                        </th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Item Name</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">$Price</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Total Sold</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Sold with $</th>
+                                        <th className="px-4 py-2 text-left text-sm font-semibold">Sold with Points</th>
                                     </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-300">
                                     {drinkCounts.slice(0, visibleCount).map((drink) => (
                                         <tr key={drink.drinkId} className="hover:bg-gray-100">
                                             <td className="px-4 py-2">{drink.drinkName}</td>
-                                            <td className="px-4 py-2">
-                                                ${drink.doublePrice.toFixed(2)}
-                                            </td>
-                                            <td className="px-4 py-2 font-bold text-lg">
-                                                {drink.totalSold}
-                                            </td>
+                                            <td className="px-4 py-2">${drink.doublePrice.toFixed(2)}</td>
+                                            <td className="px-4 py-2">{drink.totalSold}</td>
                                             <td className="px-4 py-2">{drink.soldWithDollars}</td>
                                             <td className="px-4 py-2">{drink.soldWithPoints}</td>
                                         </tr>
                                     ))}
                                     </tbody>
                                 </table>
+
                                 <div className="mt-4 flex justify-center space-x-4">
                                     {!isAllVisible && (
                                         <>
@@ -269,18 +255,14 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                {/* --- Orders by Single Day (byDay) --- */}
+                {/* --- Search Orders by Single Day --- */}
                 <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
                     <div className="bg-gray-200 p-6">
                         <h2 className="text-3xl font-bold text-center">Orders by Day</h2>
                     </div>
                     <div className="p-6">
-                        {/* Single-day Date Picker */}
                         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
-                            <label
-                                htmlFor="orderDate"
-                                className="text-lg font-semibold mb-2 md:mb-0"
-                            >
+                            <label htmlFor="orderDate" className="text-lg font-semibold mb-2 md:mb-0">
                                 Select Date (yyyy-mm-dd):
                             </label>
                             <input
@@ -298,26 +280,15 @@ export default function AnalyticsPage() {
                             </button>
                         </div>
 
-                        {/* Orders Table */}
                         {ordersByDay.length > 0 ? (
                             <table className="min-w-full divide-y divide-gray-300 font-sans">
                                 <thead className="bg-gray-300">
                                 <tr>
-                                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                                        Order ID
-                                    </th>
-                                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                                        Timestamp
-                                    </th>
-                                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                                        Total ($)
-                                    </th>
-                                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                                        Tip ($)
-                                    </th>
-                                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                                        Status
-                                    </th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Order ID</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Timestamp</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Total ($)</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Tip ($)</th>
+                                    <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-300">
@@ -331,9 +302,7 @@ export default function AnalyticsPage() {
                                                 timeZone: "America/New_York",
                                             })}
                                         </td>
-                                        <td className="px-4 py-2">
-                                            ${order.totalRegularPrice.toFixed(2)}
-                                        </td>
+                                        <td className="px-4 py-2">${order.totalRegularPrice.toFixed(2)}</td>
                                         <td className="px-4 py-2">${order.tip.toFixed(2)}</td>
                                         <td className="px-4 py-2">{order.status}</td>
                                     </tr>
@@ -341,9 +310,7 @@ export default function AnalyticsPage() {
                                 </tbody>
                             </table>
                         ) : (
-                            <p className="text-center text-gray-600">
-                                No orders found for this day.
-                            </p>
+                            <p className="text-center text-gray-600">No orders found for this day.</p>
                         )}
                     </div>
                 </div>
@@ -352,7 +319,6 @@ export default function AnalyticsPage() {
     );
 }
 
-// Reusable Card component
 const Card = ({ title, value }: { title: string; value: string }) => (
     <div className="bg-white bg-opacity-90 shadow-lg rounded p-4 text-gray-900">
         <h2 className="font-bold text-xl">{title}</h2>

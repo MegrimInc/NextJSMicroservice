@@ -4,26 +4,11 @@ import React, { useState } from "react";
 import FormEntry from "./FormEntry";
 import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
 import { useRouter } from "next/navigation";
-import { apiRequest } from "@/lib/api/api";
-
-interface FormData {
-    companyName: string;
-    companyNickname: string;
-    country: string;
-    region: string;
-    city: string;
-    postalCode: string;
-    address: string;
-    email: string;
-    password: string;
-    openTime: string;
-    closeTime: string;
-}
 
 export default function RegisterForm() {
     const router = useRouter();
 
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState({
         companyName: "",
         companyNickname: "",
         country: "",
@@ -37,8 +22,8 @@ export default function RegisterForm() {
         closeTime: "",
     });
 
-    const [country, setCountry] = useState("");
-    const [region, setRegion] = useState("");
+    const [logoImage, setLogoImage] = useState<File | null>(null);
+    const [storeImage, setStoreImage] = useState<File | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -48,39 +33,65 @@ export default function RegisterForm() {
         }));
     };
 
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setLogoImage(e.target.files[0]);
+        }
+    };
+
+    const handleStoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setStoreImage(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const payload = {
+
+        if (!logoImage) {
+            alert("Logo image is required!");
+            return;
+        }
+
+        const formDataToSend = new FormData();
+        formDataToSend.append("info", new Blob([JSON.stringify({
+            name: formData.companyName,
+            nickname: formData.companyNickname,
+            city: formData.city,
+            stateOrProvince: formData.region,
+            address: formData.address,
+            country: formData.country,
+            zipCode: formData.postalCode,
             email: formData.email,
             password: formData.password,
-            companyName: formData.companyName,
-            companyNickname: formData.companyNickname,
-            country: country,
-            region: region,
-            city: formData.city,
-            address: formData.address,
-            openTime: formData.openTime,
-            closeTime: formData.closeTime,
-        };
+        })], { type: "application/json" }));
+
+        formDataToSend.append("logoImage", logoImage);
+        if (storeImage) {
+            formDataToSend.append("storeImage", storeImage);
+        }
 
         try {
-            // Register the bar on the backend
-            const response = await fetch("https://www.barzzy.site/newsignup/registerbar", {
+            const hostname = (typeof window !== "undefined" && window.location.hostname === "localhost")
+                ? "http://localhost:8080"
+                : "https://www.barzzy.site";
+
+            const response = await fetch(`${hostname}/signup/register-merchant`, {
                 method: "POST",
-                body: JSON.stringify(payload),
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                body: formDataToSend,
+                credentials: "include",
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
 
-            alert("Registration successful! Redirecting to Menu!");
-            // Redirect to the new Drinks page
+            alert("Registration successful! Redirecting to analytics...");
             router.push("/analytics");
             router.refresh();
-
         } catch (error: any) {
-            console.error("Registration failed:", error);
+            console.error("Registration error:", error);
             alert("Registration failed: " + error.message);
         }
     };
@@ -90,90 +101,53 @@ export default function RegisterForm() {
             <div className="w-full max-w-md p-8 bg-white shadow-md rounded-lg">
                 <h2 className="text-2xl font-bold text-center mb-6">Register Your Bar</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <FormEntry
-                        type="text"
-                        name="companyName"
-                        label="Company Name"
-                        value={formData.companyName}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="text"
-                        name="companyNickname"
-                        label="Company Nickname"
-                        value={formData.companyNickname}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="email"
-                        name="email"
-                        label="Email"
-                        value={formData.email}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="password"
-                        name="password"
-                        label="Password"
-                        value={formData.password}
-                        handleChange={handleChange}
-                    />
+                    <FormEntry type="text" name="companyName" label="Company Name" value={formData.companyName} handleChange={handleChange} />
+                    <FormEntry type="text" name="companyNickname" label="Company Nickname" value={formData.companyNickname} handleChange={handleChange} />
+                    <FormEntry type="email" name="email" label="Email" value={formData.email} handleChange={handleChange} />
+                    <FormEntry type="password" name="password" label="Password" value={formData.password} handleChange={handleChange} />
+
                     <div>
                         <label className="block text-gray-700">Country</label>
                         <CountryDropdown
                             classes="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
-                            value={country}
-                            onChange={(val: string) => setCountry(val)}
+                            value={formData.country}
+                            onChange={(val: string) => setFormData((prev) => ({ ...prev, country: val }))}
                         />
                     </div>
+
                     <div>
                         <label className="block text-gray-700">Region</label>
                         <RegionDropdown
-                            country={country}
+                            country={formData.country}
                             classes="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
-                            value={region}
-                            onChange={(val: string) => setRegion(val)}
+                            value={formData.region}
+                            onChange={(val: string) => setFormData((prev) => ({ ...prev, region: val }))}
                         />
                     </div>
-                    <FormEntry
-                        type="text"
-                        name="city"
-                        label="City"
-                        value={formData.city}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="text"
-                        name="postalCode"
-                        label="Postal Code"
-                        value={formData.postalCode}
-                        handleChange={handleChange}
-                        pattern="[0-9]{5}"
-                    />
-                    <FormEntry
-                        type="text"
-                        name="address"
-                        label="Address"
-                        value={formData.address}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="time"
-                        name="openTime"
-                        label="Open Time"
-                        value={formData.openTime}
-                        handleChange={handleChange}
-                    />
-                    <FormEntry
-                        type="time"
-                        name="closeTime"
-                        label="Close Time"
-                        value={formData.closeTime}
-                        handleChange={handleChange}
-                    />
+
+                    <FormEntry type="text" name="city" label="City" value={formData.city} handleChange={handleChange} />
+                    <FormEntry type="text" name="postalCode" label="Postal Code" value={formData.postalCode} handleChange={handleChange} pattern="[0-9]{5}" />
+                    <FormEntry type="text" name="address" label="Address" value={formData.address} handleChange={handleChange} />
+                    <FormEntry type="time" name="openTime" label="Open Time" value={formData.openTime} handleChange={handleChange} />
+                    <FormEntry type="time" name="closeTime" label="Close Time" value={formData.closeTime} handleChange={handleChange} />
+
+                    {/* Logo upload */}
+                    <div>
+                        <label className="block text-gray-700">Logo Image</label>
+                        <input type="file" accept="image/*" onChange={handleLogoChange}
+                               className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required />
+                    </div>
+
+                    {/* Store image upload (optional) */}
+                    <div>
+                        <label className="block text-gray-700">Store Image (optional)</label>
+                        <input type="file" accept="image/*" onChange={handleStoreChange}
+                               className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" />
+                    </div>
+
                     <button
                         type="submit"
-                        className="mt-4 p-2 bg-blue-500 text-white rounded-md w-full"
+                        className="mt-4 p-2 bg-blue-500 text-white rounded-md w-full hover:bg-blue-600"
                     >
                         Register
                     </button>

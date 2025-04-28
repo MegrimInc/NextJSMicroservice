@@ -1,21 +1,19 @@
 "use client";
 
-// @ts-ignore
+
 import { FaCloud, FaGift, FaChartLine } from "react-icons/fa";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState } from "react"; // Add this at the top
 
 export default function HomePage() {
 
-  const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGetStarted = async () => {
     setIsLoading(true);
     try {
       // Call backend API to create Stripe account and get onboarding URL
-      const response = await fetch('/api/create-stripe-account', {
+      const response = await fetch('/api/create-connected-account', {
         method: 'POST'
       });
       
