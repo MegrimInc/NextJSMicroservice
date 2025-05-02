@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-const BASE_URL = "https://www.barzzy.site/postgres-test";
+const BASE_URL = "https://www.barzzy.site/postgres-test/merchant";
 
 // --- Interfaces ---
 interface GeneralData {
@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
     useEffect(() => {
         const fetchGeneralData = async () => {
             try {
-                const url = `${BASE_URL}/orders/generalData`;
+                const url = `${BASE_URL}/generalData`;
 
                 const res = await fetch(url, {
                     method: "GET",
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
     useEffect(() => {
         const fetchDrinkCounts = async () => {
             try {
-                const url = `${BASE_URL}/orders/allItemCounts`;
+                const url = `${BASE_URL}/allItemCounts`;
                 const res = await fetch(url, {
                     method: "GET",
                     credentials: "include",
