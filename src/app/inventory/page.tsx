@@ -60,9 +60,9 @@ export default function InventoryPage() {
             // Push change to server (debounced/throttled in real life)
             fetch(`${API}/${id}`, {
                 method: "PATCH",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    credentials: 'include',
                 },
                 body: JSON.stringify({ [name]: formatted }),
             }).catch(console.error);
@@ -72,9 +72,9 @@ export default function InventoryPage() {
         try {
             const res = await fetch(API, {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    credentials: 'include',
                 },
                 body: JSON.stringify(newItem),
             });
