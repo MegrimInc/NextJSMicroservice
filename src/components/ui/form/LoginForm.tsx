@@ -31,7 +31,7 @@ export default function LoginForm() {
             .find(row => row.startsWith("auth="))
             ?.split("=")[1] || "";
 
-        const response = await fetch("https://www.barzzy.site/postgres-test/signup/login-merchant", {
+        const response = await fetch("https://www.barzzy.site/postgres-test/auth/login-merchant", {
           method: "POST",
           body: JSON.stringify({
             email: "",
@@ -55,9 +55,11 @@ export default function LoginForm() {
           } else if (result === "INVALID_CREDENTIALS") {
             deleteAuthCookie();
             setError("Invalid credentials. Please log in.");
+            router.push("/analytics");
           } else {
             deleteAuthCookie();
             setError("Login failed. Please try again.");
+            router.push("/");
           }
         }
       } catch (err) {
@@ -85,7 +87,7 @@ export default function LoginForm() {
     e.preventDefault();
 
     try {
-      const response =  await fetch("https://www.barzzy.site/postgres-test/signup/login-merchant", { // TODO change to HTTPS
+      const response =  await fetch("https://www.barzzy.site/postgres-test/auth/login-merchant", { // TODO change to HTTPS
         method: "POST",
         body: JSON.stringify({
           email: formData.email,

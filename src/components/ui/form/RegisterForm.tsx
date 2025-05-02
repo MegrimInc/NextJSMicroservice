@@ -76,7 +76,7 @@ export default function RegisterForm() {
                 ? "http://localhost:8080"
                 : "https://www.barzzy.site";
 
-            const response = await fetch(`${hostname}/signup/register-merchant`, {
+            const response = await fetch(`${hostname}/auth/register-merchant`, {
                 method: "POST",
                 body: formDataToSend,
                 credentials: "include",
