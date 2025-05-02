@@ -5,9 +5,7 @@ import React, { useEffect, useState } from "react";
 // Back-end base URL
 const API = "https://www.barzzy.site/postgres-test/merchant";
 
-// Pull the logged-in merchant’s ID from localStorage (set at login)
-const merchantId =
-    typeof window !== "undefined" ? localStorage.getItem("merchantId") ?? "" : "";
+
 
 /* -------------------------------- TYPES --------------------------------- */
 export interface Item {
@@ -26,12 +24,11 @@ export default function InventoryPage() {
 
     /* ------------ Fetch menu once merchantId is available ------------- */
     useEffect(() => {
-        if (!merchantId) {
-            setError("Missing merchant credentials. Please log in again.");
-            return;
-        }
-        fetch(API, { headers: { "X-MERCHANT-ID": merchantId } })
-            .then((r) => (r.ok ? r.json() : Promise.reject("Cannot load menu")))
+        fetch(API, { credentials: 'include' })
+        .then((r) => {
+            if (r.status === 401) throw new Error("Session expired. Please log in again.");
+            return r.ok ? r.json() : Promise.reject("Cannot load menu");
+        })
             .then(setItems)
             .catch((e) => setError(String(e)));
     }, []);
@@ -65,7 +62,7 @@ export default function InventoryPage() {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-MERCHANT-ID": merchantId,
+                    credentials: 'include',
                 },
                 body: JSON.stringify({ [name]: formatted }),
             }).catch(console.error);
@@ -77,7 +74,7 @@ export default function InventoryPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-MERCHANT-ID": merchantId,
+                    credentials: 'include',
                 },
                 body: JSON.stringify(newItem),
             });
@@ -93,7 +90,7 @@ export default function InventoryPage() {
     const deleteItem = async (id: number) => {
         await fetch(`${API}/${id}`, {
             method: "DELETE",
-            headers: { "X-MERCHANT-ID": merchantId },
+            credentials: 'include',
         });
         setItems((prev) => prev.filter((i) => i.itemId !== id));
     };
