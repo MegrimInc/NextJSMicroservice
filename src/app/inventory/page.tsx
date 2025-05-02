@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 
 /* -------------------------------- CONFIG -------------------------------- */
 // Back-end base URL
-const API = "http://34.207.184.72:8080/api/items";
+const API = "https://www.barzzy.site/postgres-test/merchant";
 
 // Pull the logged-in merchant’s ID from localStorage (set at login)
 const merchantId =

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-const BASE_URL = "https://www.barzzy.site";
+const BASE_URL = "https://www.barzzy.site/postgres-test";
 
 // --- Interfaces ---
 interface GeneralData {

@@ -31,7 +31,7 @@ export default function LoginForm() {
             .find(row => row.startsWith("auth="))
             ?.split("=")[1] || "";
 
-        const response = await fetch("http://34.207.184.72:8080/signup/login-merchant", {
+        const response = await fetch("https://www.barzzy.site/postgres-test/signup/login-merchant", {
           method: "POST",
           body: JSON.stringify({
             email: "",
@@ -85,7 +85,7 @@ export default function LoginForm() {
     e.preventDefault();
 
     try {
-      const response =  await fetch("http://34.207.184.72:8080/signup/login-merchant", { // TODO change to HTTPS
+      const response =  await fetch("https://www.barzzy.site/postgres-test/signup/login-merchant", { // TODO change to HTTPS
         method: "POST",
         body: JSON.stringify({
           email: formData.email,
