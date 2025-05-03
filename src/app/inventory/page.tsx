@@ -5,14 +5,13 @@ import React, { useEffect, useState } from "react";
 // Back-end base URL
 const API = "https://www.barzzy.site/postgres-test/merchant";
 
-
-
 /* -------------------------------- TYPES --------------------------------- */
 export interface Item {
     itemId: number;
     regularPrice: number | null;
     discountPrice: number | null;
     pointPrice: number;
+    taxPercent: number | null;
     name: string;
     description: string;
 }
@@ -22,13 +21,13 @@ export default function InventoryPage() {
     const [items, setItems] = useState<Item[]>([]);
     const [error, setError] = useState<string>("");
 
-    /* ------------ Fetch menu once merchantId is available ------------- */
+    /* ------------ Fetch menu once on mount ------------- */
     useEffect(() => {
         fetch(API, { credentials: 'include' })
-        .then((r) => {
-            if (r.status === 401) throw new Error("Session expired. Please log in again.");
-            return r.ok ? r.json() : Promise.reject("Cannot load menu");
-        })
+            .then((r) => {
+                if (r.status === 401) throw new Error("Session expired. Please log in again.");
+                return r.ok ? r.json() : Promise.reject("Cannot load menu");
+            })
             .then(setItems)
             .catch((e) => setError(String(e)));
     }, []);
@@ -41,6 +40,7 @@ export default function InventoryPage() {
         pointPrice: 150,
         regularPrice: 0,
         discountPrice: 0,
+        taxPercent: 0,
     };
     const [newItem, setNewItem] = useState<Item>(blank);
 
@@ -48,7 +48,7 @@ export default function InventoryPage() {
     const updateField =
         (id: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
             const { name, value } = e.target;
-            const formatted = ["regularPrice", "discountPrice", "pointPrice"].includes(
+            const formatted = ["regularPrice", "discountPrice", "pointPrice", "taxPercent"].includes(
                 name
             )
                 ? parseFloat(value)
@@ -81,7 +81,7 @@ export default function InventoryPage() {
             if (!res.ok) throw new Error("Create failed");
             const created: Item = await res.json();
             setItems((prev) => [...prev, created]);
-            setNewItem(blank); // reset
+            setNewItem(blank);
         } catch (err) {
             setError(String(err));
         }
@@ -115,6 +115,7 @@ export default function InventoryPage() {
                     <Th>$ Price</Th>
                     <Th>Discount $</Th>
                     <Th>Pts</Th>
+                    <Th>Tax %</Th>
                     <Th>Name</Th>
                     <Th>Description</Th>
                     <Th>Actions</Th>
@@ -142,6 +143,13 @@ export default function InventoryPage() {
                             <Input
                                 name="pointPrice"
                                 value={it.pointPrice}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="taxPercent"
+                                value={it.taxPercent ?? ""}
                                 onChange={updateField(it.itemId)}
                             />
                         </Td>
@@ -181,7 +189,6 @@ export default function InventoryPage() {
                                 setNewItem({ ...newItem, regularPrice: +e.target.value })
                             }
                         />
-
                     </Td>
                     <Td>
                         <Input
@@ -198,6 +205,15 @@ export default function InventoryPage() {
                             value={newItem.pointPrice}
                             onChange={(e) =>
                                 setNewItem({ ...newItem, pointPrice: +e.target.value })
+                            }
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="taxPercent"
+                            value={newItem.taxPercent ?? ""}
+                            onChange={(e) =>
+                                setNewItem({ ...newItem, taxPercent: +e.target.value })
                             }
                         />
                     </Td>
