@@ -54,11 +54,11 @@ export default function LoginForm() {
             // No credentials given; stay on login page quietly
           } else if (result === "INVALID_CREDENTIALS") {
             deleteAuthCookie();
-            setError("Invalid credentials. Please log in.");
+            //setError("Invalid credentials. Please log in.");
             router.push("/analytics");
           } else {
             deleteAuthCookie();
-            setError("Login failed. Please try again.");
+            //setError("Login failed. Please try again.");
             router.push("/");
           }
         }
