@@ -44,6 +44,7 @@ export default function RegisterForm() {
         ? "http://localhost:8080"
         : "https://www.barzzy.site/postgres-test";
 
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -58,11 +59,12 @@ export default function RegisterForm() {
                 return setError("All fields are required.");
         }
 
-        // Phase 1: send email only
+        // Phase 1: send email as URL-encoded
         const response = await fetch(`https://www.barzzy.site/postgres-test/auth/register-merchant`, {
             method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             credentials: "include",
-            body: JSON.stringify({ email: formData.email })
+            body: new URLSearchParams({ email: formData.email }).toString()
         });
 
         if (!response.ok) {
@@ -72,6 +74,8 @@ export default function RegisterForm() {
 
         setShowCodeField(true);
     };
+    
+    
 
     const handleVerification = async () => {
         setError(null);
