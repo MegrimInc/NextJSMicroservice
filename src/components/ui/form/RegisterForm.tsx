@@ -18,9 +18,7 @@ export default function RegisterForm() {
         address: "",
         email: "",
         password: "",
-        confirmPassword: "",
-        openTime: "",
-        closeTime: "",
+        confirmPassword: ""
     });
 
     const [verificationCode, setVerificationCode] = useState("");
@@ -44,7 +42,7 @@ export default function RegisterForm() {
 
     const hostname = (typeof window !== "undefined" && window.location.hostname === "localhost")
         ? "http://localhost:8080"
-        : "https://www.barzzy.site";
+        : "https://www.barzzy.site/postgres-test";
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -90,8 +88,6 @@ export default function RegisterForm() {
             zipCode: formData.postalCode,
             email: formData.email,
             password: formData.password,
-            openTime: formData.openTime,
-            closeTime: formData.closeTime,
             verificationCode
         })], { type: "application/json" }));
 
@@ -142,8 +138,6 @@ export default function RegisterForm() {
                     <FormEntry type="text" name="city" label="City" value={formData.city} handleChange={handleChange} />
                     <FormEntry type="text" name="postalCode" label="Postal Code" value={formData.postalCode} handleChange={handleChange} />
                     <FormEntry type="text" name="address" label="Address" value={formData.address} handleChange={handleChange} />
-                    <FormEntry type="time" name="openTime" label="Open Time" value={formData.openTime} handleChange={handleChange} />
-                    <FormEntry type="time" name="closeTime" label="Close Time" value={formData.closeTime} handleChange={handleChange} />
 
                     <div>
                         <label className="block text-gray-700">Logo Image</label>
