@@ -82,8 +82,8 @@ export default function RegisterForm() {
 
         const finalData = new FormData();
         finalData.append("info", new Blob([JSON.stringify({
-            name: formData.companyName,
-            nickname: formData.companyNickname,
+            companyName: formData.companyName,
+            companyNickname: formData.companyNickname,
             city: formData.city,
             stateOrProvince: formData.region,
             address: formData.address,
@@ -91,7 +91,7 @@ export default function RegisterForm() {
             zipCode: formData.postalCode,
             email: formData.email,
             password: formData.password,
-            verificationCode
+            verificationCode: verificationCode
         })], { type: "application/json" }));
 
         finalData.append("logoImage", logoImage!);
