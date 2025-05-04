@@ -59,9 +59,8 @@ export default function RegisterForm() {
         }
 
         // Phase 1: send email only
-        const response = await fetch(`${hostname}/auth/register-merchant`, {
+        const response = await fetch(`https://www.barzzy.site/postgres-test/auth/register-merchant`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ email: formData.email })
         });
@@ -94,7 +93,7 @@ export default function RegisterForm() {
         finalData.append("logoImage", logoImage!);
         if (storeImage) finalData.append("storeImage", storeImage);
 
-        const verifyRes = await fetch(`${hostname}/auth/verify-merchant`, {
+        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test/auth/verify-merchant`, {
             method: "POST",
             body: finalData,
             credentials: "include",
