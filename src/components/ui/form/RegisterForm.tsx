@@ -108,7 +108,7 @@ export default function RegisterForm() {
             return setError(msg);
         }
 
-        router.push("/onboarding");
+        router.push("/analytics");
     };
 
     return (
