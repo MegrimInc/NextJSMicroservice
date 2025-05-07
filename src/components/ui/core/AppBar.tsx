@@ -51,28 +51,34 @@ export default function AppBar({ megrimFont }: AppBarProps) {
             </li>
           )}
           {isLoggedIn ? (
-            <>
-              <li>
-                <Link href="/inventory" className="hover:text-gray-300 transition duration-200">
-                  Inventory
-                </Link>
-              </li>
-              <li>
-                <Link href="/analytics" className="hover:text-gray-300 transition duration-200">
-                  Analytics
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Logout
-                </button>
-              </li>
-            </>
+              <>
+                <li>
+                  <Link href="/inventory" className="hover:text-gray-300 transition duration-200">
+                    Inventory
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/analytics" className="hover:text-gray-300 transition duration-200">
+                    Analytics
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/configurations" className="hover:text-gray-300 transition duration-200">
+                    Configurations
+                  </Link>
+                </li>
+                <li>
+                  <button
+                      onClick={handleLogout}
+                      className="hover:text-gray-300 transition duration-200"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
           ) : (
-            <>
+
+              <>
               <li>
                 <Link href="/login" className="hover:text-gray-300 transition duration-200">
                   Login

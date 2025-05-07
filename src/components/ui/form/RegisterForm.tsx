@@ -42,7 +42,7 @@ export default function RegisterForm() {
 
     const hostname = (typeof window !== "undefined" && window.location.hostname === "localhost")
         ? "http://localhost:8080"
-        : "https://www.barzzy.site/postgres-test";
+        : "https://www.barzzy.site/postgres-test-api";
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,7 +60,7 @@ export default function RegisterForm() {
         }
 
         // Phase 1: send email as URL-encoded
-        const response = await fetch(`https://www.barzzy.site/postgres-test/auth/register-merchant`, {
+        const response = await fetch(`https://www.barzzy.site/postgres-test-api/auth/register-merchant`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             credentials: "include",
@@ -97,7 +97,7 @@ export default function RegisterForm() {
         finalData.append("logoImage", logoImage!);
         if (storeImage) finalData.append("storeImage", storeImage);
 
-        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test/auth/verify-merchant`, {
+        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test-api/auth/verify-merchant`, {
             method: "POST",
             body: finalData,
             credentials: "include",
