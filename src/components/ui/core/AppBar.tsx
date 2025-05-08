@@ -15,7 +15,7 @@ export default function AppBar({ megrimFont }: AppBarProps) {
 
   useEffect(() => {
     const syncLoginStatus = () => {
-      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const loggedIn = document.cookie.split('; ').some(cookie => cookie.startsWith('auth='));
       setIsLoggedIn(loggedIn);
     };
 
@@ -26,6 +26,7 @@ export default function AppBar({ megrimFont }: AppBarProps) {
 
   const handleLogout = () => {
     localStorage.clear();
+    document.cookie = "auth=; Max-Age=0; path=/; Secure; SameSite=Strict;";
     setIsLoggedIn(false);
     window.dispatchEvent(new Event("loginStatusChanged"));
     router.push("/");
