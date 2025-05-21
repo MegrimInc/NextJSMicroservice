@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { AppConfig } from "@/lib/api/config";
 
 interface AppBarProps {
   megrimFont: string;
@@ -14,10 +15,20 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const syncLoginStatus = () => {
-      const loggedIn = document.cookie.split('; ').some(cookie => cookie.startsWith('auth='));
-      setIsLoggedIn(loggedIn);
-    };
+   const syncLoginStatus = async () => {
+  try {
+    const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email: "", password: "" }),
+    });
+
+    setIsLoggedIn(res.ok);
+  } catch (e) {
+    setIsLoggedIn(false);
+  }
+};
 
     syncLoginStatus(); // initial load
     window.addEventListener("loginStatusChanged", syncLoginStatus);
