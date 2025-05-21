@@ -1,18 +1,22 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-const API = "https://www.barzzy.site/postgres-test-api/merchant";
+/* -------------------------------- CONFIG -------------------------------- */
+const API = "https://www.barzzy.site/postgres-test-http/merchant";
 
-/* --------------------------- TYPES ---------------------------- */
+/* -------------------------------- TYPES --------------------------------- */
 export interface Item {
     itemId: number;
+    name: string;
+    description: string;
     regularPrice: number | null;
     discountPrice: number | null;
     pointPrice: number;
     taxPercent: number | null;
-    name: string;
-    description: string;
+    gratuityPercent: number | null;
     categoryIds: number[];
+    // locally hold the selected file before upload
+    imageFile?: File;
 }
 
 interface Category {
@@ -31,15 +35,18 @@ export default function InventoryPage() {
         itemId: 0,
         name: "",
         description: "",
-        pointPrice: 150,
         regularPrice: 0,
         discountPrice: 0,
+        pointPrice: 150,
         taxPercent: 0,
+        gratuityPercent: 0,
         categoryIds: [],
+        imageFile: undefined,
     };
-    const [newItem, setNewItem] = useState<Item>(blank);
+    const [newItem, setNewItem] = useState<Item>({ ...blank });
 
     useEffect(() => {
+        // load items
         fetch(API, { credentials: "include" })
             .then((r) => {
                 if (r.status === 401) throw new Error("Session expired. Please log in again.");
@@ -48,46 +55,52 @@ export default function InventoryPage() {
             .then(setItems)
             .catch((e) => setError(String(e)));
 
+        // load categories
         fetch(`${API}/configurations/categories`, { credentials: "include" })
-            .then((r) => r.ok ? r.json() : Promise.reject("Cannot load categories"))
+            .then((r) => (r.ok ? r.json() : Promise.reject("Cannot load categories")))
             .then((data) => setCategories(data.categories || []))
             .catch((e) => setError(String(e)));
     }, []);
 
     const markEdited = (id: number) => {
-        setEditedItems((prev) => new Set(prev).add(id));
+        setEditedItems((prev) => {
+            const s = new Set(prev);
+            s.add(id);
+            return s;
+        });
     };
 
     const saveItem = async (item: Item) => {
         try {
-            const res = await fetch(`${API}/${item.itemId}`, {
+            await fetch(`${API}/${item.itemId}`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(item),
             });
-            if (!res.ok) throw new Error("Update failed");
             setEditedItems((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(item.itemId);
-                return newSet;
+                const s = new Set(prev);
+                s.delete(item.itemId);
+                return s;
             });
         } catch (e) {
             setError(String(e));
         }
     };
 
-    const updateField = (id: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        const formatted = ["regularPrice", "discountPrice", "pointPrice", "taxPercent"].includes(name)
-            ? parseFloat(value)
-            : value;
-
-        setItems((prev) =>
-            prev.map((it) => (it.itemId === id ? { ...it, [name]: formatted } : it))
-        );
-        markEdited(id);
-    };
+    const updateField =
+        (id: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            const { name, value } = e.target;
+            const formatted = ["regularPrice", "discountPrice", "pointPrice", "taxPercent", "gratuityPercent"].includes(
+                name
+            )
+                ? parseFloat(value)
+                : value;
+            setItems((prev) =>
+                prev.map((it) => (it.itemId === id ? { ...it, [name]: formatted } : it))
+            );
+            markEdited(id);
+        };
 
     const updateItemCategories = (itemId: number, newCategoryIds: number[]) => {
         setItems((prev) =>
@@ -95,6 +108,16 @@ export default function InventoryPage() {
         );
         markEdited(itemId);
     };
+
+    const updateItemImage =
+        (itemId: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setItems((prev) =>
+                prev.map((it) => (it.itemId === itemId ? { ...it, imageFile: file } : it))
+            );
+            markEdited(itemId);
+        };
 
     const addItem = async () => {
         try {
@@ -107,7 +130,7 @@ export default function InventoryPage() {
             if (!res.ok) throw new Error("Create failed");
             const created: Item = await res.json();
             setItems((prev) => [...prev, created]);
-            setNewItem(blank);
+            setNewItem({ ...blank });
         } catch (err) {
             setError(String(err));
         }
@@ -131,13 +154,15 @@ export default function InventoryPage() {
                 <thead className="border-b border-black">
                 <tr>
                     <Th>ID</Th>
-                    <Th>$ Price</Th>
-                    <Th>Discount $</Th>
-                    <Th>Pts</Th>
-                    <Th>Tax %</Th>
+                    <Th className="w-24">$ Price</Th>
+                    <Th className="w-24">Discount $</Th>
+                    <Th className="w-24">Pts</Th>
+                    <Th className="w-28">Tax %</Th>
+                    <Th className="w-28">Gratuity %</Th>
                     <Th>Name</Th>
                     <Th>Description</Th>
                     <Th>Categories</Th>
+                    <Th>Image</Th>
                     <Th>Actions</Th>
                 </tr>
                 </thead>
@@ -145,12 +170,69 @@ export default function InventoryPage() {
                 {items.map((it) => (
                     <tr key={it.itemId} className="hover:bg-gray-100">
                         <Td>{it.itemId}</Td>
-                        <Td><Input name="regularPrice" value={it.regularPrice ?? ""} onChange={updateField(it.itemId)} /></Td>
-                        <Td><Input name="discountPrice" value={it.discountPrice ?? ""} onChange={updateField(it.itemId)} /></Td>
-                        <Td><Input name="pointPrice" value={it.pointPrice} onChange={updateField(it.itemId)} /></Td>
-                        <Td><Input name="taxPercent" value={it.taxPercent ?? ""} onChange={updateField(it.itemId)} /></Td>
-                        <Td><Input name="name" value={it.name} onChange={updateField(it.itemId)} /></Td>
-                        <Td><Input name="description" value={it.description} onChange={updateField(it.itemId)} /></Td>
+                        <Td>
+                            <Input
+                                name="regularPrice"
+                                type="number"
+                                step="0.01"
+                                className="w-24"
+                                value={it.regularPrice ?? ""}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="discountPrice"
+                                type="number"
+                                step="0.01"
+                                className="w-24"
+                                value={it.discountPrice ?? ""}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="pointPrice"
+                                type="number"
+                                className="w-24"
+                                value={it.pointPrice}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="taxPercent"
+                                type="number"
+                                step="0.01"
+                                className="w-28"
+                                value={it.taxPercent ?? ""}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="gratuityPercent"
+                                type="number"
+                                step="0.01"
+                                className="w-28"
+                                value={it.gratuityPercent ?? ""}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="name"
+                                value={it.name}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
+                            <Input
+                                name="description"
+                                value={it.description}
+                                onChange={updateField(it.itemId)}
+                            />
+                        </Td>
                         <Td>
                             <CategoryDropdown
                                 selected={it.categoryIds}
@@ -159,10 +241,27 @@ export default function InventoryPage() {
                             />
                         </Td>
                         <Td>
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg"
+                                onChange={updateItemImage(it.itemId)}
+                            />
+                        </Td>
+                        <Td>
                             <div className="flex flex-col gap-2">
-                                <button className="text-red-600 font-semibold hover:underline" onClick={() => deleteItem(it.itemId)}>Delete</button>
+                                <button
+                                    className="text-red-600 font-semibold hover:underline"
+                                    onClick={() => deleteItem(it.itemId)}
+                                >
+                                    Delete
+                                </button>
                                 {editedItems.has(it.itemId) && (
-                                    <button className="text-blue-600 font-semibold hover:underline" onClick={() => saveItem(it)}>Save</button>
+                                    <button
+                                        className="text-blue-600 font-semibold hover:underline"
+                                        onClick={() => saveItem(it)}
+                                    >
+                                        Save
+                                    </button>
                                 )}
                             </div>
                         </Td>
@@ -172,12 +271,69 @@ export default function InventoryPage() {
                 {/* NEW ITEM ROW */}
                 <tr className="hover:bg-gray-100">
                     <Td>new</Td>
-                    <Td><Input name="regularPrice" value={newItem.regularPrice ?? ""} onChange={(e) => setNewItem({ ...newItem, regularPrice: +e.target.value })} /></Td>
-                    <Td><Input name="discountPrice" value={newItem.discountPrice ?? ""} onChange={(e) => setNewItem({ ...newItem, discountPrice: +e.target.value })} /></Td>
-                    <Td><Input name="pointPrice" value={newItem.pointPrice} onChange={(e) => setNewItem({ ...newItem, pointPrice: +e.target.value })} /></Td>
-                    <Td><Input name="taxPercent" value={newItem.taxPercent ?? ""} onChange={(e) => setNewItem({ ...newItem, taxPercent: +e.target.value })} /></Td>
-                    <Td><Input name="name" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} /></Td>
-                    <Td><Input name="description" value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} /></Td>
+                    <Td>
+                        <Input
+                            name="regularPrice"
+                            type="number"
+                            step="0.01"
+                            className="w-24"
+                            value={newItem.regularPrice ?? ""}
+                            onChange={(e) => setNewItem({ ...newItem, regularPrice: +e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="discountPrice"
+                            type="number"
+                            step="0.01"
+                            className="w-24"
+                            value={newItem.discountPrice ?? ""}
+                            onChange={(e) => setNewItem({ ...newItem, discountPrice: +e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="pointPrice"
+                            type="number"
+                            className="w-24"
+                            value={newItem.pointPrice}
+                            onChange={(e) => setNewItem({ ...newItem, pointPrice: +e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="taxPercent"
+                            type="number"
+                            step="0.01"
+                            className="w-28"
+                            value={newItem.taxPercent ?? ""}
+                            onChange={(e) => setNewItem({ ...newItem, taxPercent: +e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="gratuityPercent"
+                            type="number"
+                            step="0.01"
+                            className="w-28"
+                            value={newItem.gratuityPercent ?? ""}
+                            onChange={(e) => setNewItem({ ...newItem, gratuityPercent: +e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="name"
+                            value={newItem.name}
+                            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        />
+                    </Td>
+                    <Td>
+                        <Input
+                            name="description"
+                            value={newItem.description}
+                            onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                        />
+                    </Td>
                     <Td>
                         <CategoryDropdown
                             selected={newItem.categoryIds}
@@ -186,7 +342,21 @@ export default function InventoryPage() {
                         />
                     </Td>
                     <Td>
-                        <button className="text-green-600 font-semibold hover:underline" onClick={addItem}>Add</button>
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            onChange={(e) =>
+                                setNewItem({ ...newItem, imageFile: e.target.files?.[0] })
+                            }
+                        />
+                    </Td>
+                    <Td>
+                        <button
+                            className="text-green-600 font-semibold hover:underline"
+                            onClick={addItem}
+                        >
+                            Add
+                        </button>
                     </Td>
                 </tr>
                 </tbody>
@@ -206,16 +376,10 @@ function CategoryDropdown({
     categories: Category[];
 }) {
     const toggle = (id: number) =>
-        selected.includes(id)
-            ? selected.filter((x) => x !== id)
-            : [...selected, id];
+        selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
 
     const toggleAll = () =>
-        onChange(
-            selected.length === categories.length
-                ? []
-                : categories.map((c) => c.categoryId)
-        );
+        onChange(selected.length === categories.length ? [] : categories.map((c) => c.categoryId));
 
     return (
         <div className="relative">
@@ -228,7 +392,10 @@ function CategoryDropdown({
                             : `${selected.length} selected`}
                 </summary>
                 <div className="absolute z-10 bg-white shadow border mt-1 w-60 max-h-48 overflow-y-auto p-2 text-sm">
-                    <label className="block cursor-pointer mb-1 text-blue-600 hover:underline" onClick={toggleAll}>
+                    <label
+                        className="block cursor-pointer mb-1 text-blue-600 hover:underline"
+                        onClick={toggleAll}
+                    >
                         {selected.length === categories.length ? "Unselect All" : "Select All"}
                     </label>
                     {categories.map((cat) => (
@@ -249,15 +416,25 @@ function CategoryDropdown({
 }
 
 /* ---------------------- UI HELPERS ---------------------- */
-const Th = ({ children }: { children: React.ReactNode }) => (
-    <th className="p-2 text-left uppercase tracking-wide">{children}</th>
-);
-const Td = ({ children }: { children: React.ReactNode }) => (
-    <td className="p-2 align-top">{children}</td>
-);
+const Th = ({
+                children,
+                className = "",
+            }: {
+    children: React.ReactNode;
+    className?: string;
+}) => <th className={`p-2 text-left uppercase tracking-wide ${className}`}>{children}</th>;
+
+const Td = ({
+                children,
+                className = "",
+            }: {
+    children: React.ReactNode;
+    className?: string;
+}) => <td className={`p-2 align-top ${className}`}>{children}</td>;
+
 const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input
         {...props}
-        className="w-full px-2 py-0.5 border border-black rounded focus:ring-1 focus:ring-black"
+        className={`${props.className ?? ""} w-full px-2 py-0.5 border border-black rounded focus:ring-1 focus:ring-black`}
     />
 );

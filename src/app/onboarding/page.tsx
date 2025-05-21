@@ -9,7 +9,7 @@ export default function OnboardingPage() {
     useEffect(() => {
         const initiateOnboarding = async () => {
             try {
-                const res = await fetch("https://www.barzzy.site/postgres-test-api/merchant/onboarding", {
+                const res = await fetch("https://www.barzzy.site/postgres-test-http/merchant/onboarding", {
                     method: "POST",
                     credentials: "include", // IMPORTANT: includes cookies
                 });

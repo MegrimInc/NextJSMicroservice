@@ -97,7 +97,7 @@ export default function RegisterForm() {
         finalData.append("logoImage", logoImage!);
         if (storeImage) finalData.append("storeImage", storeImage);
 
-        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test-api/auth/verify-merchant`, {
+        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test-http/auth/verify-merchant`, {
             method: "POST",
             body: finalData,
             credentials: "include",
