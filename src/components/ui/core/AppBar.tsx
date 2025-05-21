@@ -45,7 +45,7 @@ export default function AppBar({ megrimFont }: AppBarProps) {
 
   // 🚪 Logout & trigger global status change
   const handleLogout = async () => {
-    await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/logout`, {
+    await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/logout-merchant`, {
       method: "POST",
       credentials: "include",
     });
