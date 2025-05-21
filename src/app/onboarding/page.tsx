@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { AppConfig } from "@/lib/api/config";
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -9,7 +10,7 @@ export default function OnboardingPage() {
     useEffect(() => {
         const initiateOnboarding = async () => {
             try {
-                const res = await fetch("https://www.barzzy.site/postgres-test-api/merchant/onboarding", {
+                const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/merchant/onboarding`, {
                     method: "POST",
                     credentials: "include", // IMPORTANT: includes cookies
                 });
