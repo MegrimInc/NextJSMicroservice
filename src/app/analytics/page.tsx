@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { AppConfig } from "@/lib/api/config";
 
-const BASE_URL = "https://www.barzzy.site/postgres-test-api/merchant";
+const BASE_URL = `${AppConfig.postgresHttpBaseUrl}/merchant`;
+
 
 // --- Interfaces ---
 interface GeneralData {

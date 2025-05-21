@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { AppConfig } from "@/lib/api/config";
 
-/* -------------------------------- CONFIG -------------------------------- */
-const API = "https://www.barzzy.site/postgres-test-http/merchant";
+const API = `${AppConfig.postgresHttpBaseUrl}/merchant`;
 
-/* -------------------------------- TYPES --------------------------------- */
+/* --------------------------- TYPES ---------------------------- */
 export interface Item {
     itemId: number;
     name: string;
@@ -12,8 +12,8 @@ export interface Item {
     regularPrice: number | null;
     discountPrice: number | null;
     pointPrice: number;
-    taxPercent: number | null;
     gratuityPercent: number | null;
+    taxPercent: number | null;
     categoryIds: number[];
     // locally hold the selected file before upload
     imageFile?: File;

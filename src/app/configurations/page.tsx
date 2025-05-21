@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AppConfig } from "@/lib/api/config";
 
-const API = "https://www.barzzy.site/postgres-test-api/merchant";
+const API = `${AppConfig.postgresHttpBaseUrl}/merchant`;
 
 interface Category {
     categoryId: number;

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import FormEntry from "./FormEntry";
 import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
 import { useRouter } from "next/navigation";
+import { AppConfig } from "@/lib/api/config";
 
 export default function RegisterForm() {
     const router = useRouter();
@@ -40,11 +41,7 @@ export default function RegisterForm() {
         if (e.target.files && e.target.files[0]) setStoreImage(e.target.files[0]);
     };
 
-    const hostname = (typeof window !== "undefined" && window.location.hostname === "localhost")
-        ? "http://localhost:8080"
-        : "https://www.barzzy.site/postgres-test-api";
-
-
+    
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -60,7 +57,7 @@ export default function RegisterForm() {
         }
 
         // Phase 1: send email as URL-encoded
-        const response = await fetch(`https://www.barzzy.site/postgres-test-api/auth/register-merchant`, {
+        const response = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/register-merchant`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             credentials: "include",
@@ -97,7 +94,7 @@ export default function RegisterForm() {
         finalData.append("logoImage", logoImage!);
         if (storeImage) finalData.append("storeImage", storeImage);
 
-        const verifyRes = await fetch(`https://www.barzzy.site/postgres-test-http/auth/verify-merchant`, {
+        const verifyRes = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/verify-merchant`, {
             method: "POST",
             body: finalData,
             credentials: "include",
