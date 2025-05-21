@@ -104,7 +104,7 @@ export default function RegisterForm() {
             const msg = await verifyRes.text();
             return setError(msg);
         }
-
+        
         router.push("/analytics");
     };
 

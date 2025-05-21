@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AppConfig } from "@/lib/api/config";
+import { useRouter } from "next/navigation";
 
 const BASE_URL = `${AppConfig.postgresHttpBaseUrl}/merchant`;
 
@@ -48,26 +49,23 @@ export default function AnalyticsPage() {
     const [error, setError] = useState("");
 
     // Fetch General Data
-    useEffect(() => {
-        fetch(`${BASE_URL}/generalData`, { credentials: "include" })
-            .then((r) => {
-                if (r.status === 401) throw new Error("Session expired. Please log in again.");
-                return r.ok ? r.json() : Promise.reject("Cannot load general data");
-            })
-            .then((data: GeneralData) => setGeneralData(data))
-            .catch((e) => setError(String(e)));
-    }, []);
+   useEffect(() => {
+  AppConfig.fetchWithAuth(`${BASE_URL}/generalData`)
+    .then((res) => res.json())
+    .then((data: GeneralData) => setGeneralData(data))
+    .catch((e) => setError(e.message));
+}, []);
 
-    // Fetch Top Selling Items
-    useEffect(() => {
-        fetch(`${BASE_URL}/allItemCounts`, { credentials: "include" })
-            .then((r) => {
-                if (r.status === 401) throw new Error("Session expired. Please log in again.");
-                return r.ok ? r.json() : Promise.reject("Cannot load item counts");
-            })
-            .then((json: { data: DrinkCount[] }) => setDrinkCounts(json.data || []))
-            .catch((e) => setError(String(e)));
-    }, []);
+   // Fetch Top Selling Items
+useEffect(() => {
+  AppConfig.fetchWithAuth(`${BASE_URL}/allItemCounts`)
+    .then((res) => {
+      if (!res.ok) throw new Error("Cannot load item counts");
+      return res.json();
+    })
+    .then((json: { data: DrinkCount[] }) => setDrinkCounts(json.data || []))
+    .catch((e) => setError(String(e.message || e)));
+}, []);
 
     // Fetch Orders By Day
     const searchOrdersByDay = async () => {
@@ -79,10 +77,6 @@ export default function AnalyticsPage() {
             const res = await fetch(`${BASE_URL}/byDay?date=${selectedDay}`, {
                 credentials: "include",
             });
-            if (res.status === 401) {
-                setError("Session expired. Please log in again.");
-                return;
-            }
             if (!res.ok) throw new Error("Cannot load orders for that day");
             const json = await res.json();
             setOrdersByDay(json.orders || []);

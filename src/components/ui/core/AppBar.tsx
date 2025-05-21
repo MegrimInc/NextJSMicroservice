@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AppConfig } from "@/lib/api/config";
 
@@ -14,34 +14,43 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // 🔄 Sync login state from cookie
+  const syncLoginStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: "", password: "" }),
+      });
+
+      setIsLoggedIn(res.ok);
+      const loggedIn = res.ok;
+    setIsLoggedIn(loggedIn);
+    router.push(loggedIn ? "/analytics" : "/login");
+
+    } catch (e) {
+      setIsLoggedIn(false);
+      router.push("/");
+    }
+  }, []);
+
+  // 🔁 Re-check login on route change or custom event
   useEffect(() => {
-   const syncLoginStatus = async () => {
-  try {
-    const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email: "", password: "" }),
-    });
+    syncLoginStatus();
 
-    setIsLoggedIn(res.ok);
-  } catch (e) {
-    setIsLoggedIn(false);
-  }
-};
-
-    syncLoginStatus(); // initial load
     window.addEventListener("loginStatusChanged", syncLoginStatus);
     return () => window.removeEventListener("loginStatusChanged", syncLoginStatus);
-  }, [pathname]);
+  }, [pathname, syncLoginStatus]);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    document.cookie = "auth=; Max-Age=0; path=/; Secure; SameSite=Strict;";
-    setIsLoggedIn(false);
+  // 🚪 Logout & trigger global status change
+  const handleLogout = async () => {
+    await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
     window.dispatchEvent(new Event("loginStatusChanged"));
-    router.push("/");
-    router.refresh();
   };
 
   return (
@@ -54,53 +63,26 @@ export default function AppBar({ megrimFont }: AppBarProps) {
           Megrim
         </div>
         <ul className="flex space-x-6 text-lg font-medium text-white">
-          {/* Conditionally render Home link only if not logged in */}
           {!isLoggedIn && (
             <li>
-              <Link href="/" className="hover:text-gray-300 transition duration-200">
-                Home
-              </Link>
+              <Link href="/" className="hover:text-gray-300 transition duration-200">Home</Link>
             </li>
           )}
           {isLoggedIn ? (
-              <>
-                <li>
-                  <Link href="/inventory" className="hover:text-gray-300 transition duration-200">
-                    Inventory
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/analytics" className="hover:text-gray-300 transition duration-200">
-                    Analytics
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/configurations" className="hover:text-gray-300 transition duration-200">
-                    Configurations
-                  </Link>
-                </li>
-                <li>
-                  <button
-                      onClick={handleLogout}
-                      className="hover:text-gray-300 transition duration-200"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </>
+            <>
+              <li><Link href="/inventory" className="hover:text-gray-300 transition duration-200">Inventory</Link></li>
+              <li><Link href="/analytics" className="hover:text-gray-300 transition duration-200">Analytics</Link></li>
+              <li><Link href="/configurations" className="hover:text-gray-300 transition duration-200">Configurations</Link></li>
+              <li>
+                <button onClick={handleLogout} className="hover:text-gray-300 transition duration-200">
+                  Logout
+                </button>
+              </li>
+            </>
           ) : (
-
-              <>
-              <li>
-                <Link href="/login" className="hover:text-gray-300 transition duration-200">
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="hover:text-gray-300 transition duration-200">
-                  Register
-                </Link>
-              </li>
+            <>
+              <li><Link href="/login" className="hover:text-gray-300 transition duration-200">Login</Link></li>
+              <li><Link href="/register" className="hover:text-gray-300 transition duration-200">Register</Link></li>
             </>
           )}
         </ul>

@@ -23,56 +23,56 @@ export default function LoginForm() {
     document.cookie = "auth=; Max-Age=0; path=/; Secure; SameSite=Strict;"; 
   }
 
-  // 🌟 Try auto-login on page load
-  useEffect(() => {
-    async function tryAutoLogin() {
-      try {
-        const authCookie = document.cookie  // eslint-disable-line @typescript-eslint/no-unused-vars
-            .split("; ")
-            .find(row => row.startsWith("auth="))
-            ?.split("=")[1] || "";
+  // // 🌟 Try auto-login on page load
+  // useEffect(() => {
+  //   async function tryAutoLogin() {
+  //     try {
+  //       const authCookie = document.cookie  // eslint-disable-line @typescript-eslint/no-unused-vars
+  //           .split("; ")
+  //           .find(row => row.startsWith("auth="))
+  //           ?.split("=")[1] || "";
 
-        const response = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
-          method: "POST",
-          body: JSON.stringify({
-            email: "",
-            password: "",
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Very important for sending cookies
-        });
+  //       const response = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
+  //         method: "POST",
+  //         body: JSON.stringify({
+  //           email: "",
+  //           password: "",
+  //         }),
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         credentials: "include", // Very important for sending cookies
+  //       });
 
-        if (response.ok) {
-          const result = await response.text();
-          if (result === "OK") {
-            router.push("/analytics");
-          }
-        } else {
-          const result = await response.text();
-          if (result === "EMPTY") {
-            // No credentials given; stay on login page quietly
-          } else if (result === "INVALID_CREDENTIALS") {
-            deleteAuthCookie();
-            setError("Invalid credentials. Please log in.");
+  //       if (response.ok) {
+  //         const result = await response.text();
+  //         if (result === "OK") {
+  //           router.push("/analytics");
+  //         }
+  //       } else {
+  //         const result = await response.text();
+  //         if (result === "EMPTY") {
+  //           // No credentials given; stay on login page quietly
+  //         } else if (result === "INVALID_CREDENTIALS") {
+  //           deleteAuthCookie();
+  //           setError("Invalid credentials. Please log in.");
   
-          } else {
-            deleteAuthCookie();
-            setError("Login failed. Please try again.");
+  //         } else {
+  //           deleteAuthCookie();
+  //           setError("Login failed. Please try again.");
            
-          }
-        }
-      } catch (err) {
-        console.error("Auto-login error:", err);
-        deleteAuthCookie();
-        setError("Error trying to log in. Please try again.");
-      }
-    }
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Auto-login error:", err);
+  //       deleteAuthCookie();
+  //       setError("Error trying to log in. Please try again.");
+  //     }
+  //   }
 
-    tryAutoLogin();
-     // eslint-disable-line @typescript-eslint/no-unused-vars
-  }, [router]);
+  //   tryAutoLogin();
+  //    // eslint-disable-line @typescript-eslint/no-unused-vars
+  // }, [router]);
 
   // 🔹 Handle input typing
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +118,6 @@ export default function LoginForm() {
         localStorage.setItem("barEmail", formData.email);
         localStorage.setItem("barPW", formData.password);
 
-        window.dispatchEvent(new Event("loginStatusChanged"));
         router.push("/analytics");
       }
     }catch (error: unknown) {

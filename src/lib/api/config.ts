@@ -46,4 +46,29 @@ export class AppConfig {
         return 'wss://www.barzzy.site/redis-live-ws';
     }
   }
+
+  static async fetchWithAuth(
+  input: RequestInfo,
+  init: RequestInit = {},
+  router?: { push: (path: string) => void }
+): Promise<Response> {
+  const res = await fetch(input, {
+    ...init,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+  });
+
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("loginStatusChanged"));
+      if (router) router.push("/login");
+    }
+    throw new Error("Session expired");
+  }
+
+  return res;
+}
 }

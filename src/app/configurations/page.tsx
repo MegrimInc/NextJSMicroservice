@@ -17,24 +17,23 @@ export default function ConfigurationsPage() {
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
 
-    useEffect(() => {
-        fetch(`${API}/configurations/categories`, { credentials: "include" })
-            .then((res) => {
-                if (res.status === 401) throw new Error("Unauthorized");
-                return res.json();
-            })
-            .then((data) => {
-                if (Array.isArray(data.categories)) {
-                    setCategories(data.categories);
-                    const names = data.categories.map((c: Category) => c.name).slice(0, 10);
-                    setInputs([...names, ...Array(10 - names.length).fill("")]);
-
-                } else {
-                    setError("Invalid category response format.");
-                }
-            })
-            .catch((err) => setError(err.message));
-    }, []);
+   useEffect(() => {
+    AppConfig.fetchWithAuth(`${API}/configurations/categories`)
+        .then((res) => {
+            if (!res.ok) throw new Error("Failed to load categories");
+            return res.json();
+        })
+        .then((data) => {
+            if (Array.isArray(data.categories)) {
+                setCategories(data.categories);
+                const names = data.categories.map((c: Category) => c.name).slice(0, 10);
+                setInputs([...names, ...Array(10 - names.length).fill("")]);
+            } else {
+                setError("Invalid category response format.");
+            }
+        })
+        .catch((err) => setError(err.message));
+}, []);
 
     const handleInputChange = (index: number, value: string) => {
         setInputs((prev) => {
@@ -53,7 +52,7 @@ export default function ConfigurationsPage() {
         }
 
         try {
-            const res = await fetch(`${API}/configurations/categories`, {
+            const res = await AppConfig.fetchWithAuth(`${API}/configurations/categories`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
