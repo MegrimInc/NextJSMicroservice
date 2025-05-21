@@ -47,7 +47,7 @@ export default function InventoryPage() {
 
     useEffect(() => {
         // load items
-        fetch(API, { credentials: "include" })
+        AppConfig.fetchWithAuth(API, { credentials: "include" })
             .then((r) => {
                 if (r.status === 401) throw new Error("Session expired. Please log in again.");
                 return r.ok ? r.json() : Promise.reject("Cannot load menu");
@@ -56,7 +56,7 @@ export default function InventoryPage() {
             .catch((e) => setError(String(e)));
 
         // load categories
-        fetch(`${API}/configurations/categories`, { credentials: "include" })
+        AppConfig.fetchWithAuth(`${API}/configurations/categories`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject("Cannot load categories")))
             .then((data) => setCategories(data.categories || []))
             .catch((e) => setError(String(e)));
@@ -72,7 +72,7 @@ export default function InventoryPage() {
 
     const saveItem = async (item: Item) => {
         try {
-            await fetch(`${API}/${item.itemId}`, {
+            await AppConfig.fetchWithAuth(`${API}/${item.itemId}`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -121,7 +121,7 @@ export default function InventoryPage() {
 
     const addItem = async () => {
         try {
-            const res = await fetch(API, {
+            const res = await AppConfig.fetchWithAuth(API, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -137,7 +137,7 @@ export default function InventoryPage() {
     };
 
     const deleteItem = async (id: number) => {
-        await fetch(`${API}/${id}`, {
+        await AppConfig.fetchWithAuth(`${API}/${id}`, {
             method: "DELETE",
             credentials: "include",
         });
