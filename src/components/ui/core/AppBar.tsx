@@ -14,30 +14,34 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // 🔄 Sync login state from cookie
   const syncLoginStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/login-merchant`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: "", password: "" }),
-      });
+  try {
+    const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/auth/check-session`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-      setIsLoggedIn(res.ok);
-      const loggedIn = res.ok;
+    const loggedIn = res.ok;
     setIsLoggedIn(loggedIn);
-    router.push(loggedIn ? "/analytics" : "/login");
 
-    } catch (e) {
-      setIsLoggedIn(false);
-      router.push("/");
-    }
-  }, []);
+    const isPublicPage = ["/", "/login", "/register"].includes(pathname);
+
+if (loggedIn && isPublicPage) {
+  router.push("/analytics");
+} else if (!loggedIn && !isPublicPage) {
+  router.push("/");
+}
+    
+  } catch (e) {
+    setIsLoggedIn(false);
+    router.push("/");
+  }
+}, [pathname]);
 
   // 🔁 Re-check login on route change or custom event
   useEffect(() => {
     syncLoginStatus();
+  
 
     window.addEventListener("loginStatusChanged", syncLoginStatus);
     return () => window.removeEventListener("loginStatusChanged", syncLoginStatus);

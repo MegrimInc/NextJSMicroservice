@@ -62,12 +62,7 @@ export default function LoginForm() {
 
       const result = await response.text();
       if (result === "OK") {
-        // Login success
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("barEmail", formData.email);
-        localStorage.setItem("barPW", formData.password);
-
-        router.push("/analytics");
+       window.dispatchEvent(new Event("loginStatusChanged"));
       }
     }catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -77,13 +72,7 @@ export default function LoginForm() {
 
   return (
       <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-r from-black via-gray-900 to-gray-700">
-        {/* Background overlay text */}
-        <div className="absolute top-1/4 left-0 right-0 flex items-center justify-center pointer-events-none z-10">
-          <h2 className={`text-5xl font-bold text-white ${megrim.className}`}>
-            Sign In To Your Account
-          </h2>
-        </div>
-
+      
         {/* Form container */}
         <div className="relative w-full max-w-md p-8 bg-white/90 shadow-md rounded-lg z-20">
           <form onSubmit={handleSubmit} className="space-y-4">

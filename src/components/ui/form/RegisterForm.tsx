@@ -105,7 +105,7 @@ export default function RegisterForm() {
             return setError(msg);
         }
         
-        router.push("/analytics");
+        window.dispatchEvent(new Event("loginStatusChanged"));
     };
 
     return (
