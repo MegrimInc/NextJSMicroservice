@@ -1,5 +1,5 @@
 const nextConfig = {
-  basePath: '/website',
+  basePath: '/',
 };
 
 export default nextConfig;

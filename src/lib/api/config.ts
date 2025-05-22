@@ -13,18 +13,18 @@ export class AppConfig {
   static get postgresHttpBaseUrl(): string {
     switch (this.environment) {
       case Environment.Test:
-        return 'https://www.barzzy.site/postgres-test-http';
+        return 'https://www.megrim.com/postgres-test-http';
       case Environment.Live:
-        return 'https://www.barzzy.site/postgres-live-http';
+        return 'https://www.megrim.com/postgres-live-http';
     }
   }
 
   static get postgresWsBaseUrl(): string {
     switch (this.environment) {
       case Environment.Test:
-        return 'wss://www.barzzy.site/postgres-test-ws';
+        return 'wss://www.megrim.com/postgres-test-ws';
       case Environment.Live:
-        return 'wss://www.barzzy.site/postgres-live-ws';
+        return 'wss://www.megrim.com/postgres-live-ws';
     }
   }
 
@@ -32,18 +32,18 @@ export class AppConfig {
   static get redisHttpBaseUrl(): string {
     switch (this.environment) {
       case Environment.Test:
-        return 'https://www.barzzy.site/redis-test-http';
+        return 'https://www.megrim.com/redis-test-http';
       case Environment.Live:
-        return 'https://www.barzzy.site/redis-live-http';
+        return 'https://www.megrim.com/redis-live-http';
     }
   }
 
   static get redisWsBaseUrl(): string {
     switch (this.environment) {
       case Environment.Test:
-        return 'wss://www.barzzy.site/redis-test-ws';
+        return 'wss://www.megrim.com/redis-test-ws';
       case Environment.Live:
-        return 'wss://www.barzzy.site/redis-live-ws';
+        return 'wss://www.megrim.com/redis-live-ws';
     }
   }
 
