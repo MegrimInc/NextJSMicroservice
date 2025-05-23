@@ -165,11 +165,7 @@ export default function RegisterForm() {
           <label className="block text-gray-700">Country</label>
           <CountryDropdown
             disabled={showCodeField}
-            classes={`w-full px-3 py-2 mt-1 border rounded-md ${
-              showCodeField
-                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                : 'text-black'
-            }`}
+            classes={`w-full px-3 py-2 mt-1 border border-gray-300 bg-white text-black rounded-md focus:outline-none focus:ring focus:ring-indigo-300 ${showCodeField ? 'cursor-not-allowed' : ''}`}
             value={formData.country}
             onChange={(val: string) =>
               setFormData((prev) => ({ ...prev, country: val }))
@@ -179,11 +175,7 @@ export default function RegisterForm() {
           <RegionDropdown
             disabled={showCodeField}
             country={formData.country}
-            classes={`w-full px-3 py-2 mt-1 border rounded-md ${
-              showCodeField
-                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                : 'text-black'
-            }`}
+            classes={`w-full px-3 py-2 mt-1 border border-gray-300 bg-white text-black rounded-md focus:outline-none focus:ring focus:ring-indigo-300 ${showCodeField ? 'cursor-not-allowed' : ''}`}
             value={formData.region}
             onChange={(val: string) =>
               setFormData((prev) => ({ ...prev, region: val }))

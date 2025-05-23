@@ -83,7 +83,6 @@ export default function LoginForm() {
         >
           Login
         </h2>
-        {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email field */}
           <FormEntry
