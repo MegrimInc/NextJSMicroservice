@@ -16,24 +16,26 @@ export default function ConfigurationsPage() {
     const [error, setError] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
+    const [storeImageFile, setStoreImageFile] = useState<File | null>(null);
+    const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
 
-   useEffect(() => {
-    AppConfig.fetchWithAuth(`${API}/configurations/categories`)
-        .then((res) => {
-            if (!res.ok) throw new Error("Failed to load categories");
-            return res.json();
-        })
-        .then((data) => {
-            if (Array.isArray(data.categories)) {
-                setCategories(data.categories);
-                const names = data.categories.map((c: Category) => c.name).slice(0, 10);
-                setInputs([...names, ...Array(10 - names.length).fill("")]);
-            } else {
-                setError("Invalid category response format.");
-            }
-        })
-        .catch((err) => setError(err.message));
-}, []);
+    useEffect(() => {
+        AppConfig.fetchWithAuth(`${API}/configurations/categories`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to load categories");
+                return res.json();
+            })
+            .then((data) => {
+                if (Array.isArray(data.categories)) {
+                    setCategories(data.categories);
+                    const names = data.categories.map((c: Category) => c.name).slice(0, 10);
+                    setInputs([...names, ...Array(10 - names.length).fill("")]);
+                } else {
+                    setError("Invalid category response format.");
+                }
+            })
+            .catch((err) => setError(err.message));
+    }, []);
 
     const handleInputChange = (index: number, value: string) => {
         setInputs((prev) => {
@@ -63,10 +65,28 @@ export default function ConfigurationsPage() {
 
             const data = await res.json();
             const updated = data.categories as Category[];
-            setCategories(updated);
             const updatedNames = updated.map((c) => c.name);
             setInputs([...updatedNames, ...Array(10 - updatedNames.length).fill("")]);
             setError("");
+        } catch (err) {
+            setError((err as Error).message);
+        }
+    };
+
+    const handleImageUpload = async (file: File | null, type: "store" | "logo") => {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", type);
+
+        try {
+            const res = await AppConfig.fetchWithAuth(`${API}/uploadImage`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Image upload failed");
+            alert(`${type} image uploaded successfully`);
         } catch (err) {
             setError((err as Error).message);
         }
@@ -111,6 +131,40 @@ export default function ConfigurationsPage() {
                         </li>
                     ))}
                 </ul>
+            </div>
+
+            <div className="mb-10">
+                <h2 className="text-2xl font-semibold mb-2">Store & Logo Images</h2>
+                <div className="flex gap-4 mb-4">
+                    <div>
+                        <label className="block mb-1">Store Image</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setStoreImageFile(e.target.files?.[0] || null)}
+                        />
+                        <button
+                            className="bg-green-600 text-white px-3 py-1 mt-2 rounded"
+                            onClick={() => handleImageUpload(storeImageFile, "store")}
+                        >
+                            Upload Store Image
+                        </button>
+                    </div>
+                    <div>
+                        <label className="block mb-1">Logo Image</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setLogoImageFile(e.target.files?.[0] || null)}
+                        />
+                        <button
+                            className="bg-green-600 text-white px-3 py-1 mt-2 rounded"
+                            onClick={() => handleImageUpload(logoImageFile, "logo")}
+                        >
+                            Upload Logo Image
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div>
