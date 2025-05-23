@@ -1,42 +1,45 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { AppConfig } from "@/lib/api/config";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AppConfig } from '@/lib/api/config';
 
 export default function OnboardingPage() {
-    const router = useRouter();
+  const router = useRouter();
 
-    useEffect(() => {
-        const initiateOnboarding = async () => {
-            try {
-                const res = await fetch(`${AppConfig.postgresHttpBaseUrl}/merchant/onboarding`, {
-                    method: "POST",
-                    credentials: "include", // IMPORTANT: includes cookies
-                });
+  useEffect(() => {
+    const initiateOnboarding = async () => {
+      try {
+        const res = await fetch(
+          `${AppConfig.postgresHttpBaseUrl}/merchant/onboarding`,
+          {
+            method: 'POST',
+            credentials: 'include', // IMPORTANT: includes cookies
+          }
+        );
 
-                if (res.status === 200) {
-                    // Already onboarded → go to analytics
-                    router.push("https://www.barzzy.site/website/analytics");
-                } else if (res.status === 201) {
-                    const link = await res.text();
-                    window.location.href = link; // Redirect to Stripe onboarding
-                } else {
-                    // Unauthorized (401) or other → go to login
-                    router.push("https://www.barzzy.site/website/login");
-                }
-            } catch (e) {
-                console.error("Failed to initiate onboarding:", e);
-                router.push("https://www.barzzy.site/website/login");
-            }
-        };
+        if (res.status === 200) {
+          // Already onboarded → go to analytics
+          router.push('https://www.barzzy.site/website/analytics');
+        } else if (res.status === 201) {
+          const link = await res.text();
+          window.location.href = link; // Redirect to Stripe onboarding
+        } else {
+          // Unauthorized (401) or other → go to login
+          router.push('https://www.barzzy.site/website/login');
+        }
+      } catch (e) {
+        console.error('Failed to initiate onboarding:', e);
+        router.push('https://www.barzzy.site/website/login');
+      }
+    };
 
-        initiateOnboarding();
-    }, [router]);
+    initiateOnboarding();
+  }, [router]);
 
-    return (
-        <div className="flex justify-center items-center min-h-screen">
-            <p className="text-lg font-semibold">Redirecting to onboarding...</p>
-        </div>
-    );
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <p className="text-lg font-semibold">Redirecting to onboarding...</p>
+    </div>
+  );
 }

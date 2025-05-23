@@ -1,33 +1,10 @@
-"use client";
+'use client';
 
-
-import { FaCloud, FaGift, FaChartLine } from "react-icons/fa";
-import { useState } from "react"; // Add this at the top
+import { FaCloud, FaGift, FaChartLine } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
-
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleGetStarted = async () => {
-    setIsLoading(true);
-    try {
-      // Call backend API to create Stripe account and get onboarding URL
-      const response = await fetch('/api/create-connected-account', {
-        method: 'POST'
-      });
-      
-      if (!response.ok) throw new Error('Failed to create account');
-      
-      const { onboardingUrl } = await response.json();
-      
-      // Redirect to Stripe onboarding
-      window.location.href = onboardingUrl;
-    } catch (error) {
-      console.error(error);
-      setIsLoading(false);
-    }
-  };
+  const router = useRouter();
 
   return (
     <div className="bg-white w-full min-h-screen font-sans">
@@ -40,29 +17,31 @@ export default function HomePage() {
           </div>
           {/* Navigation is handled elsewhere */}
         </nav>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 py-16 text-white text-center">
           <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight drop-shadow-lg uppercase">
             Transform Your Orders & Rewards
           </h1>
           <p className="mt-6 text-xl max-w-2xl mx-auto">
-            Megrim delivers cloud-based ordering, seamless digital rewards, and real-time analytics—empowering your business to grow revenue and foster customer loyalty.
+            Megrim delivers cloud-based ordering, seamless digital rewards, and
+            real-time analytics—empowering your business to grow revenue and
+            foster customer loyalty.
           </p>
           <div className="mt-8">
-          <button 
-  onClick={handleGetStarted} // Remove Link wrapper
-  className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
->
-  {isLoading ? 'Creating Account...' : 'Get Started'}
-</button>
-<a 
-  href="https://www.linkedin.com/company/megrim/" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="inline-block bg-transparent border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
->
-  Learn More
-</a>
+            <button
+              onClick={() => router.push('/register')}
+              className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
+            >
+              Get Started
+            </button>
+            <a
+              href="https://www.linkedin.com/company/megrim/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-transparent border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
+            >
+              Learn More
+            </a>
           </div>
         </div>
         {/* Decorative floating shape */}
@@ -102,21 +81,24 @@ export default function HomePage() {
             Ready to Boost Your Business?
           </h2>
           <p className="text-lg mb-10 opacity-90">
-            Integrate orders, rewards, and analytics into one seamless experience.
+            Integrate orders, rewards, and analytics into one seamless
+            experience.
           </p>
-          <button 
-  onClick={handleGetStarted} // Remove Link wrapper
-  className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
->
-  {isLoading ? 'Creating Account...' : 'Get Started'}
-</button>
+          <button
+            onClick={() => router.push('/register')}
+            className="inline-block bg-black text-white px-6 py-3 rounded-md mr-4 hover:bg-gray-800 transition"
+          >
+            Get Started
+          </button>
         </div>
       </section>
 
       {/* Footer Section */}
       <footer className="bg-black text-gray-400 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between">
-          <p className="text-sm">&copy; {new Date().getFullYear()} Megrim, Inc. All rights reserved.</p>
+          <p className="text-sm">
+            &copy; {new Date().getFullYear()} Megrim, Inc. All rights reserved.
+          </p>
           <ul className="flex space-x-4 text-sm mt-4 sm:mt-0">
             <li>
               <a href="#" className="hover:text-gray-200">
@@ -149,9 +131,7 @@ interface FeatureCardProps {
 function FeatureCard({ title, description, icon }: FeatureCardProps) {
   return (
     <div className="bg-white rounded-lg p-6 shadow hover:shadow-xl transition flex flex-col items-center">
-      <div className="mb-4">
-        {icon}
-      </div>
+      <div className="mb-4">{icon}</div>
       <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
       <p className="text-gray-600 text-center leading-relaxed">{description}</p>
     </div>
