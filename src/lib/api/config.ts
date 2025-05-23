@@ -1,9 +1,9 @@
 export enum Environment {
   Test = 'test',
-  Live = 'live'
+  Live = 'live',
 }
 
-// THIS IS WHERE YOU CHANGE THE ENVIRONMENT TO TEST AND LIVE 
+// THIS IS WHERE YOU CHANGE THE ENVIRONMENT TO TEST AND LIVE
 const CURRENT_ENVIRONMENT: Environment = Environment.Test;
 
 export class AppConfig {
@@ -48,27 +48,27 @@ export class AppConfig {
   }
 
   static async fetchWithAuth(
-  input: RequestInfo,
-  init: RequestInit = {},
-  router?: { push: (path: string) => void }
-): Promise<Response> {
-  const res = await fetch(input, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers || {}),
-    },
-  });
+    input: RequestInfo,
+    init: RequestInit = {},
+    router?: { push: (path: string) => void }
+  ): Promise<Response> {
+    const res = await fetch(input, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init.headers || {}),
+      },
+    });
 
-  if (res.status === 401) {
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("loginStatusChanged"));
-      if (router) router.push("/login");
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('loginStatusChanged'));
+        if (router) router.push('/login');
+      }
+      throw new Error('Session expired');
     }
-    throw new Error("Session expired");
-  }
 
-  return res;
-}
+    return res;
+  }
 }
