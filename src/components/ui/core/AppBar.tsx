@@ -73,8 +73,8 @@ export default function AppBar({ megrimFont }: AppBarProps) {
       case 'requirements.past_due':
         return {
           icon: '⚠️ ',
-          message: 'Your Megrim account is missing required information and thus is not visible to customers. Please provide the required info to receive payouts.',
-          linkLabel: 'Fix Now',
+          message: 'Your account is missing required information and thus is not visible to customers. Please provide the required info.',
+          linkLabel: 'Resolve',
           linkType: 'onboarding',
         };
 
