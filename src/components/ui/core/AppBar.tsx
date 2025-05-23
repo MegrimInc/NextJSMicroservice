@@ -64,32 +64,32 @@ export default function AppBar({ megrimFont }: AppBarProps) {
     switch (status) {
       case 'unverified':
         return {
-          icon: '⚠️',
-          message: '⚠️ Your account has not been verified yet and thus is not visible to customers. Please complete verification.',
+          icon: '⚠️ ',
+          message: 'Your account has not been verified yet and thus is not visible to customers. Please complete verification.',
           linkLabel: 'Verify',
           linkType: 'onboarding',
         };
 
       case 'requirements.past_due':
         return {
-          icon: '⚠️',
-          message: '⚠️ Your Megrim account is past due on required information. Please verify to continue receiving payouts.',
+          icon: '⚠️ ',
+          message: 'Your Megrim account is missing required information and thus is not visible to customers. Please provide the required info to receive payouts.',
           linkLabel: 'Fix Now',
           linkType: 'onboarding',
         };
 
       case 'requirements.currently_due':
         return {
-          icon: '⚠️',
-          message: '⚠️ Some required fields are missing. Update your business details to activate your account.',
+          icon: '⚠️ ',
+          message: 'Some required fields are missing. Update your business details to activate your account.',
           linkLabel: 'Resolve',
           linkType: 'onboarding',
         };
 
       case 'requirements.eventually_due':
         return {
-          icon: '⚠️',
-          message: '⚠️ Additional details are needed soon for compliance. Take action now to avoid payout interruptions.',
+          icon: '⚠️ ',
+          message: 'Additional details are needed soon for compliance. Take action now to avoid payout interruptions.',
           linkLabel: 'Update Info',
           linkType: 'onboarding',
         };
@@ -97,48 +97,48 @@ export default function AppBar({ megrimFont }: AppBarProps) {
       case 'requirements.pending_verification':
       case 'under_review':
         return {
-          icon: '⏳',
-          message: '⏳ Your info is under review. Please check back shortly.',
+          icon: '⏳ ',
+          message: 'Your info is under review. Please check back shortly.',
           linkLabel: 'Check',
           linkType: 'refresh',
         };
 
       case 'under_review':
         return {
-          icon: '🔍',
-          message: '🔍 Your account is currently under review. This is usually temporary.',
+          icon: '🔍 ',
+          message: 'Your account is currently under review. This is usually temporary.',
           linkLabel: 'Refresh',
           linkType: 'refresh',
         };
 
       case 'rejected.fraud':
         return {
-          icon: '❌',
-          message: '❌ Megrim has rejected your account due to suspected fraudulent activity.',
+          icon: '❌ ',
+          message: 'Megrim has rejected your account due to suspected fraudulent activity.',
           linkLabel: null,
           linkType: null,
         };
 
       case 'rejected.listed':
         return {
-          icon: '❌',
-          message: '❌ Megrim rejected your account due to a regulatory or sanctions list match.',
+          icon: '❌ ',
+          message: 'Megrim rejected your account due to a regulatory or sanctions list match.',
           linkLabel: null,
           linkType: null,
         };
 
       case 'rejected.terms_of_service':
         return {
-          icon: '❌',
-          message: '❌ Your account was rejected for violating our Terms of Service.',
+          icon: '❌ ',
+          message: 'Your account was rejected for violating our Terms of Service.',
           linkLabel: null,
           linkType: null,
         };
 
       default:
         return {
-          icon: '⚠️',
-          message: '⚠️ Unknown verification status!',
+          icon: '⚠️ ',
+          message: 'Unknown verification status!',
           linkLabel: 'Open Stripe',
           linkType: 'onboarding',
         };
