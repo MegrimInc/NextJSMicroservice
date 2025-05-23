@@ -1,16 +1,23 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppConfig } from '@/lib/api/config';
+import { Megrim } from 'next/font/google';
+
+const megrim = Megrim({ subsets: ['latin'], weight: '400' });
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const hasRun = useRef(false); // 👈 flag to ensure effect only runs once
 
   useEffect(() => {
+    if (hasRun.current) return; // 👈 skip if already run
+    hasRun.current = true;
+
     const initiateOnboarding = async () => {
       try {
-        const res = await fetch(
+        const res = await AppConfig.fetchWithAuth(
           `${AppConfig.postgresHttpBaseUrl}/merchant/onboarding`,
           {
             method: 'POST',
@@ -19,18 +26,13 @@ export default function OnboardingPage() {
         );
 
         if (res.status === 200) {
-          // Already onboarded → go to analytics
-          router.push('https://www.barzzy.site/website/analytics');
-        } else if (res.status === 201) {
           const link = await res.text();
-          window.location.href = link; // Redirect to Stripe onboarding
-        } else {
-          // Unauthorized (401) or other → go to login
-          router.push('https://www.barzzy.site/website/login');
+          console.log('[DEBUG] Status:', res.status);
+          console.log('[DEBUG] Body:', link);
+          window.location.href = link;
         }
       } catch (e) {
         console.error('Failed to initiate onboarding:', e);
-        router.push('https://www.barzzy.site/website/login');
       }
     };
 
@@ -38,8 +40,10 @@ export default function OnboardingPage() {
   }, [router]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <p className="text-lg font-semibold">Redirecting to onboarding...</p>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-black via-gray-900 to-gray-700">
+      <p className={`text-4xl font-semibold text-white ${megrim.className}`}>
+        Redirecting...
+      </p>
     </div>
   );
 }

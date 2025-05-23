@@ -33,11 +33,7 @@ export default function FormEntry({
         pattern={pattern}
         maxLength={maxLength}
         required
-        className={`w-full px-3 py-2 mt-1 border rounded-md focus:outline-none ${
-          disabled
-            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-            : 'focus:ring focus:ring-indigo-300'
-        }`}
+        className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300 bg-white disabled:cursor-not-allowed"
       />
     </div>
   );

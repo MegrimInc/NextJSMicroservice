@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AppConfig } from '@/lib/api/config';
-import { useRouter } from 'next/navigation';
+
 
 const BASE_URL = `${AppConfig.postgresHttpBaseUrl}/merchant`;
 
