@@ -13,6 +13,9 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const [isStripeVerified, setIsStripeVerified] = useState<boolean | null>(
+    null
+  );
 
   const syncLoginStatus = useCallback(async () => {
     try {
@@ -29,6 +32,10 @@ export default function AppBar({ megrimFont }: AppBarProps) {
 
       const isPublicPage = ['/', '/login', '/register'].includes(pathname);
 
+      if (loggedIn && !isPublicPage) {
+        fetchStripeStatus(); 
+      }
+
       if (loggedIn && isPublicPage) {
         router.push('/analytics');
       } else if (!loggedIn && !isPublicPage) {
@@ -39,6 +46,22 @@ export default function AppBar({ megrimFont }: AppBarProps) {
       router.push('/');
     }
   }, [pathname]);
+
+  const fetchStripeStatus = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${AppConfig.postgresHttpBaseUrl}/merchant/stripeStatus`,
+        {
+          method: 'GET',
+          credentials: 'include',
+        }
+      );
+      const data = await res.json();
+      setIsStripeVerified(data.isStripeVerified);
+    } catch {
+      setIsStripeVerified(false);
+    }
+  }, []);
 
   // 🔁 Re-check login on route change or custom event
   useEffect(() => {
@@ -60,87 +83,102 @@ export default function AppBar({ megrimFont }: AppBarProps) {
   };
 
   return (
-    <header
-      className="bg-gradient-to-r from-black via-gray-900 to-gray-700 shadow-md font-sans border-b-2 border-solid"
-      style={{
-        borderImage:
-          'linear-gradient(to right, rgba(255,255,255,0.2), rgba(100,100,100,0.5), rgba(0,0,0,1)) 1',
-      }}
-    >
-      <nav className="flex items-center justify-between w-full py-4 px-6 rounded-b-xl">
-        <div
-          className={`text-2xl font-extrabold tracking-wide text-white drop-shadow-sm ${megrimFont}`}
-        >
-          Megrim
+    <>
+      <header
+        className="bg-gradient-to-r from-black via-gray-900 to-gray-700 shadow-md font-sans border-b-2 border-solid"
+        style={{
+          borderImage:
+            'linear-gradient(to right, rgba(255,255,255,0.2), rgba(100,100,100,0.5), rgba(0,0,0,1)) 1',
+        }}
+      >
+        <nav className="flex items-center justify-between w-full py-4 px-6 rounded-b-xl">
+          <div
+            className={`text-2xl font-extrabold tracking-wide text-white drop-shadow-sm ${megrimFont}`}
+          >
+            Megrim
+          </div>
+          <ul className="flex space-x-6 text-lg font-medium text-white">
+            {!isLoggedIn && (
+              <li>
+                <Link
+                  href="/"
+                  className="hover:text-gray-300 transition duration-200"
+                >
+                  Home
+                </Link>
+              </li>
+            )}
+            {isLoggedIn ? (
+              <>
+                <li>
+                  <Link
+                    href="/inventory"
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Inventory
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/analytics"
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Analytics
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/configurations"
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Configurations
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/login"
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register"
+                    className="hover:text-gray-300 transition duration-200"
+                  >
+                    Register
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+        </nav>
+      </header>
+
+      {isLoggedIn && (
+        <div className="fixed bottom-0 left-0 w-full bg-yellow-500 text-black text-center py-2 z-50 shadow-md">
+          ⚠️ Your business is not yet visible to customers. To start receiving
+          orders, please verify your business info{' '}
+          <Link
+            href="/onboarding"
+            className="underline font-semibold hover:text-yellow-900"
+          >
+            Verify
+          </Link>
         </div>
-        <ul className="flex space-x-6 text-lg font-medium text-white">
-          {!isLoggedIn && (
-            <li>
-              <Link
-                href="/"
-                className="hover:text-gray-300 transition duration-200"
-              >
-                Home
-              </Link>
-            </li>
-          )}
-          {isLoggedIn ? (
-            <>
-              <li>
-                <Link
-                  href="/inventory"
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Inventory
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/analytics"
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Analytics
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/configurations"
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Configurations
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Logout
-                </button>
-              </li>
-            </>
-          ) : (
-            <>
-              <li>
-                <Link
-                  href="/login"
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register"
-                  className="hover:text-gray-300 transition duration-200"
-                >
-                  Register
-                </Link>
-              </li>
-            </>
-          )}
-        </ul>
-      </nav>
-    </header>
+      )}
+    </>
   );
 }
