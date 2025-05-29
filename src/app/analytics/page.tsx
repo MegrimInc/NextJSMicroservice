@@ -17,7 +17,7 @@ interface GeneralData {
 
 interface DrinkCount {
   drinkId: number;
-  drinkName: string;
+  name: string;
   doublePrice: number;
   soldWithDollars: number;
   soldWithPoints: number;
@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
                   <tbody className="divide-y divide-gray-300">
                     {drinkCounts.slice(0, visibleCount).map((d) => (
                       <tr key={d.drinkId} className="hover:bg-gray-100">
-                        <td className="px-4 py-2">{d.drinkName}</td>
+                        <td className="px-4 py-2">{d.name}</td>
                         <td className="px-4 py-2">
                           ${d.doublePrice.toFixed(2)}
                         </td>

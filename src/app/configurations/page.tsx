@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { AppConfig } from '@/lib/api/config';
+import { useEffect, useState } from "react";
+import { AppConfig } from "@/lib/api/config";
+import { Trash2 } from "lucide-react";
 
 const API = `${AppConfig.postgresHttpBaseUrl}/merchant`;
+
+type DayKey =
+    | "Monday" | "Tuesday" | "Wednesday" | "Thursday"
+    | "Friday" | "Saturday" | "Sunday";
 
 interface Category {
   categoryId: number;
@@ -11,137 +16,158 @@ interface Category {
 }
 
 export default function ConfigurationsPage() {
-  const [inputs, setInputs] = useState<string[]>(Array(10).fill(''));
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  /* ───── STATE ───── */
+  const [inputs,      setInputs]      = useState<string[]>(Array(10).fill(""));
+  const [categories,  setCategories]  = useState<Category[]>([]);
+  const [schedule,    setSchedule]    = useState<Record<DayKey,string|null>>({
+    Monday:null, Tuesday:null, Wednesday:null, Thursday:null,
+    Friday:null, Saturday:null, Sunday:null
+  });
+  const [rangeDraft,  setRangeDraft]  = useState("");      // for “apply to all”
+  const [error,       setError]       = useState("");
 
+  /* ───── INITIAL LOAD ───── */
   useEffect(() => {
-    AppConfig.fetchWithAuth(`${API}/configurations/categories`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load categories');
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data.categories)) {
-          setCategories(data.categories);
-          const names = data.categories
-            .map((c: Category) => c.name)
-            .slice(0, 10);
-          setInputs([...names, ...Array(10 - names.length).fill('')]);
-        } else {
-          setError('Invalid category response format.');
-        }
-      })
-      .catch((err) => setError(err.message));
+    (async () => {
+      try {
+        /* categories */
+        const catRes = await AppConfig.fetchWithAuth(`${API}/configurations/categories`);
+        const catJson = await catRes.json();
+        setCategories(catJson.categories);
+        const names = (catJson.categories as Category[]).map(c => c.name).slice(0,10);
+        setInputs([...names, ...Array(10-names.length).fill("")]);
+
+        /* discount schedule */
+        const discRes = await AppConfig.fetchWithAuth(`${API}/configurations/discount`);
+        const discJson = await discRes.json();
+        const parsed: Record<DayKey,string|null> = JSON.parse(discJson.discountSchedule);
+        setSchedule(prev => ({...prev, ...parsed}));
+      } catch (e:any) { setError(e.message); }
+    })();
   }, []);
 
-  const handleInputChange = (index: number, value: string) => {
-    setInputs((prev) => {
-      const copy = [...prev];
-      copy[index] = value;
-      return copy;
+  /* ───── CATEGORY HELPERS ───── */
+  const handleInputChange = (i:number,val:string) =>
+      setInputs(prev => { const c=[...prev]; c[i]=val; return c; });
+
+  const saveCategories = async () => {
+    const parsed = inputs.map(s=>s.trim()).filter(Boolean);
+    if (parsed.length < 3 || parsed.length > 8) {
+      setError("You must provide between 3 and 8 categories."); return;
+    }
+    const res = await AppConfig.fetchWithAuth(`${API}/configurations/categories`,{
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(parsed)
     });
+    if (!res.ok) { setError("Failed to save"); return; }
+    const data = await res.json();
+    setCategories(data.categories);
+    setError("");
   };
 
-  const handleSaveCategories = async () => {
-    const parsed = inputs.map((s) => s.trim()).filter((s) => s.length > 0);
+  const deleteCategory = async (id:number) => {
+    await AppConfig.fetchWithAuth(`${API}/configurations/categories/${id}`,{ method:"DELETE" });
+    setCategories(prev => prev.filter(c => c.categoryId!==id));
+  };
 
-    if (parsed.length < 3 || parsed.length > 8) {
-      setError('You must provide between 3 and 8 categories.');
-      return;
-    }
+  /* ───── DISCOUNT HELPERS ───── */
+  const updateDayRange = (day:DayKey,val:string|null) =>
+      setSchedule(prev => ({...prev,[day]:val}));
 
-    try {
-      const res = await AppConfig.fetchWithAuth(
-        `${API}/configurations/categories`,
+  const applyToAll = () => {
+    if (!rangeDraft.trim()) return;
+    setSchedule(Object.fromEntries(
+        Object.keys(schedule).map(k => [k, rangeDraft.trim()])
+    ) as Record<DayKey,string|null>);
+  };
+
+  const saveSchedule = async () => {
+    const res = await AppConfig.fetchWithAuth(
+        `${API}/configurations/discount`,
         {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(parsed),
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify(schedule)
         }
-      );
-
-      if (!res.ok) throw new Error('Failed to save categories');
-
-      const data = await res.json();
-      const updated = data.categories as Category[];
-      setCategories(updated);
-      const updatedNames = updated.map((c) => c.name);
-      setInputs([...updatedNames, ...Array(10 - updatedNames.length).fill('')]);
-      setError('');
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    );
+    if (!res.ok) { setError("Failed to save schedule"); }
+    else setError("");
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen text-black">
-      <h1 className="text-4xl font-bold mb-6 text-center">Configurations</h1>
+      <div className="p-6 bg-white min-h-screen text-black">
+        <h1 className="text-4xl font-bold mb-6 text-center">Configurations</h1>
+        {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+        {/* ───── CATEGORIES ───── */}
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold mb-2">Item Categories</h2>
+          <p className="text-sm text-gray-600 mb-4">Enter category names. Leave others blank.</p>
 
-      <div className="mb-10">
-        <h2 className="text-2xl font-semibold mb-2">Item Categories</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Enter 3–8 category names. Leave others blank.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          {inputs.map((val, idx) => (
-            <input
-              key={idx}
-              type="text"
-              className="border px-3 py-2 rounded"
-              placeholder={`Category ${idx + 1}`}
-              value={val}
-              onChange={(e) => handleInputChange(idx, e.target.value)}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={handleSaveCategories}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Save Categories
-        </button>
-
-        <ul className="list-disc pl-6 mt-4">
-          {categories.map((cat) => (
-            <li key={cat.categoryId}>
-              {cat.name} (ID: {cat.categoryId})
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Discount Schedule</h2>
-        <p className="text-sm text-gray-600 mb-4">This is not connected yet.</p>
-        <div className="flex gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Start Time</label>
-            <input
-              type="time"
-              className="border px-3 py-2 rounded"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            {inputs.map((v,i)=>(
+                <input key={i} value={v} placeholder={`Category ${i+1}`}
+                       onChange={e=>handleInputChange(i,e.target.value)}
+                       className="border px-3 py-2 rounded"/>
+            ))}
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">End Time</label>
-            <input
-              type="time"
-              className="border px-3 py-2 rounded"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
+
+          <button onClick={saveCategories}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Save Categories
+          </button>
+
+          <ul className="pl-6 mt-4 space-y-1">
+            {categories.map(cat=>(
+                <li key={cat.categoryId} className="flex items-center gap-2">
+                  {cat.name}
+                  <Trash2 size={16} className="text-red-600 cursor-pointer"
+                          onClick={()=>deleteCategory(cat.categoryId)}/>
+                </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ───── DISCOUNT SCHEDULE ───── */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-2">Discount Schedule</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Time ranges per day. Format: <code>hh:mm-hh:mm</code> or multiple separated with <code>|</code>.
+          </p>
+          <div className="flex items-center gap-3 mb-4">
+            <input value={rangeDraft} onChange={e => setRangeDraft(e.target.value)}
+                   placeholder="hh:mm-hh:mm range"
+                   className="border px-2 py-1 rounded flex-1"/>
+            <button onClick={applyToAll}
+                    className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+              Apply to all days
+            </button>
           </div>
-        </div>
+          <table className="w-full max-w-xl text-sm mb-4">
+            <tbody>
+            {Object.keys(schedule).map(day => (
+                <tr key={day} className="border-b">
+                  <td className="py-2 pr-4 font-medium">{day}</td>
+                  <td className="py-2">
+                    <input
+                        value={schedule[day as DayKey] ?? ""}
+                        onChange={e => updateDayRange(day as DayKey, e.target.value)}
+                        placeholder="e.g. 17:00-19:00 | 22:00-23:59"
+                        className="w-full border px-2 py-1 rounded"/>
+                  </td>
+                </tr>
+            ))}
+            </tbody>
+          </table>
+
+          {/* apply all */}
+
+
+          <button onClick={saveSchedule}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Save Schedule
+          </button>
+        </section>
       </div>
-    </div>
   );
 }

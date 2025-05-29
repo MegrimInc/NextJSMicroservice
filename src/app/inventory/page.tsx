@@ -209,14 +209,29 @@ export default function InventoryPage() {
                 ))}
 
                 {/* Image */}
-                <Td className={`${WIDTH_IMAGE} flex flex-col gap-1`}>
-                  {it.imageUrl && !it.imageFile && <span className="text-green-600 font-semibold">✓ Image</span>}
-                  {it.imageFile && <span className="text-orange-500">pending…</span>}
-                  <label className="inline-block px-3 py-1.5 border border-gray-400 rounded shadow-sm text-sm bg-gray-100 hover:bg-gray-200 cursor-pointer w-fit">
-                    {it.imageUrl ? "Update file" : "Choose file"}
-                    <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={updateImg(it.itemId)}/>
-                  </label>
+                {/* Image */}
+                <Td className={`${WIDTH_IMAGE}`}>
+                  <div className="flex flex-col gap-1">
+                    {it.imageUrl && !it.imageFile && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600 font-semibold">✓ Image</span>
+                          <button
+                              onClick={() => window.open(it.imageUrl, "_blank")}
+                              className="text-blue-600 underline text-sm hover:text-blue-800"
+                          >
+                            View
+                          </button>
+                        </div>
+                    )}
+                    {it.imageFile && <span className="text-orange-500">pending…</span>}
+                    <label className="inline-block px-3 py-1.5 border border-gray-400 rounded shadow-sm text-sm bg-gray-100 hover:bg-gray-200 cursor-pointer w-fit">
+                      {it.imageUrl ? "Update file" : "Choose file"}
+                      <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={updateImg(it.itemId)} />
+                    </label>
+                  </div>
                 </Td>
+
+
 
                 {/* Actions */}
                 <Td>
