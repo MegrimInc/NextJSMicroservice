@@ -4,7 +4,7 @@ export enum Environment {
 }
 
 // THIS IS WHERE YOU CHANGE THE ENVIRONMENT TO TEST AND LIVE
-const CURRENT_ENVIRONMENT: Environment = Environment.Live;
+const CURRENT_ENVIRONMENT: Environment = Environment.Test;
 
 export class AppConfig {
   static environment: Environment = CURRENT_ENVIRONMENT;
