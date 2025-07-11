@@ -25,6 +25,78 @@ export default function ConfigurationsPage() {
   });
   const [rangeDraft,  setRangeDraft]  = useState("");      // for “apply to all”
   const [error,       setError]       = useState("");
+  const [storeImageFile, setStoreImageFile] = useState<File | null>(null);
+  const [storeImageUrl, setStoreImageUrl] = useState<string>("");
+
+  const S3_BUCKET = "megrimages";
+  const S3_REGION = "us-east-1";
+
+  async function convertToWebP(file: File): Promise<File> {
+    const img = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas not supported");
+    ctx.drawImage(img, 0, 0);
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error("WebP conversion failed"));
+        if (blob.size > 307200) return reject(new Error("Image is too large"));
+        resolve(new File([blob], file.name.replace(/\.(png|jpe?g)$/i, ".webp"), { type: "image/webp" }));
+      }, "image/webp", 0.9);
+    });
+  }
+
+  async function getPresignedUrl(file: File) {
+    const params = new URLSearchParams({ filename: file.name }).toString();
+    const res = await AppConfig.fetchWithAuth(`${API}/upload-image-url?${params}`, {
+      method: "POST", credentials: "include",
+    });
+    if (!res.ok) throw new Error("Presign failed");
+    return (await res.json()) as { url: string; key: string };
+  }
+
+  const uploadToS3 = (url: string, file: File) =>
+      fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      }).then(r => {
+        if (!r.ok) throw new Error("Upload failed");
+      });
+
+
+  const handleStoreImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setStoreImageFile(file);
+  };
+
+  const uploadStoreImage = async () => {
+    if (!storeImageFile) return setError("No image selected");
+
+    try {
+      const webpFile = await convertToWebP(storeImageFile);
+      const { url, key } = await getPresignedUrl(webpFile);
+      await uploadToS3(url, webpFile);
+
+      const finalUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+
+      const res = await AppConfig.fetchWithAuth(`${API}/configurations/store-image`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ storeImage: finalUrl }),
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      setStoreImageFile(null);
+      setError("");
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
 
   /* ───── INITIAL LOAD ───── */
   useEffect(() => {
@@ -168,6 +240,28 @@ export default function ConfigurationsPage() {
             Save Schedule
           </button>
         </section>
+        {/* ───── STORE IMAGE ───── */}
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold mb-2">Store Image</h2>
+          <p className="text-sm text-gray-600 mb-2">Upload an image to represent your store.</p>
+
+          <input
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={handleStoreImageChange}
+              className="mb-2"
+          />
+
+          <button
+              onClick={uploadStoreImage}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Upload Store Image
+          </button>
+
+          {error && <p className="text-red-600 mt-2">{error}</p>}
+        </section>
+
       </div>
   );
 }
