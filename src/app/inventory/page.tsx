@@ -29,6 +29,7 @@ export interface Item {
   imageUrl?: string;
   image?: string;
 }
+
 interface Category { categoryId: number; name: string }
 
 /* ───── S3 helpers ───── */
