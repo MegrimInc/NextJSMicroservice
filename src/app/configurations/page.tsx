@@ -124,8 +124,8 @@ export default function ConfigurationsPage() {
 
   const saveCategories = async () => {
     const parsed = inputs.map(s=>s.trim()).filter(Boolean);
-    if (parsed.length < 3 || parsed.length > 8) {
-      setError("You must provide between 3 and 8 categories."); return;
+    if (parsed.length < 3 || parsed.length > 10) {
+      setError("You must provide between 3 and 10 categories."); return;
     }
     const res = await AppConfig.fetchWithAuth(`${API}/configurations/categories`,{
       method:"POST", headers:{ "Content-Type":"application/json" },
