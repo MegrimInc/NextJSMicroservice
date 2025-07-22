@@ -57,7 +57,7 @@ async function convertToWebP(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) throw new Error("WebP conversion failed");
-      if (blob.size > 307200) return reject(new Error("Image is too large!"));
+      if (blob.size > 512000) return reject(new Error("Image is too large!"));
       resolve(new File([blob], file.name.replace(/\.(png|jpe?g)$/i, ".webp"), { type: "image/webp" }));
     }, "image/webp", 0.9);
   });
