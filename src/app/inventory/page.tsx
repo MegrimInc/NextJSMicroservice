@@ -46,6 +46,7 @@ const uploadToS3 = (url: string, file: File) =>
     .then(r => { if (!r.ok) throw new Error("Upload failed"); });
 
 async function convertToWebP(file: File): Promise<File> {
+  if (file.type === "image/webp") return file;
   const img = await createImageBitmap(file);
   const canvas = document.createElement("canvas");
   canvas.width = img.width;
@@ -294,7 +295,7 @@ export default function InventoryPage() {
                   {it.imageFile && <span className="text-orange-500">pending…</span>}
                   <label className="inline-block px-3 py-1.5 border border-gray-400 rounded shadow-sm text-sm bg-gray-100 hover:bg-gray-200 cursor-pointer w-fit">
                     {it.imageUrl ? "Update file" : "Choose file"}
-                    <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={updateImg(it.itemId)} />
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={updateImg(it.itemId)} />
                   </label>
                 </div>
               </Td>
@@ -322,7 +323,7 @@ export default function InventoryPage() {
               <Td key={n}><Input name={n} type="number" step="0.01" className={NUMERIC_COL_W[i]} value={(newItem as any)[n]} onChange={e => setNewItem({ ...newItem, [n]: e.target.value === "" ? "" : Number(e.target.value) })} /></Td>
             ))}
             <Td className={WIDTH_IMAGE}>
-              <input type="file" accept="image/png,image/jpeg" onChange={e => setNewItem({ ...newItem, imageFile: e.target.files?.[0] })} />
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => setNewItem({ ...newItem, imageFile: e.target.files?.[0] })} />
             </Td>
             <Td><button className="text-green-600 font-semibold hover:underline" onClick={addItem}>Add</button></Td>
           </tr>
