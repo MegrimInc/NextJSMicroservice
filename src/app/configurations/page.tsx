@@ -67,7 +67,23 @@ export default function ConfigurationsPage() {
       });
 
 
-  const handleStoreImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const resetAllEmployeeShifts = async () => {
+        try {
+            const res = await AppConfig.fetchWithAuth(`${API}/employees/reset-shift`, {
+                method: "PATCH",
+                credentials: "include",
+            });
+
+            if (!res.ok) throw new Error("Failed to reset shifts");
+
+            setError(""); // clear any old error
+            alert("All employee shifts have been reset.");
+        } catch (e: any) {
+            setError(e.message);
+        }
+    };
+
+    const handleStoreImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setStoreImageFile(file);
   };
@@ -261,6 +277,21 @@ export default function ConfigurationsPage() {
 
           {error && <p className="text-red-600 mt-2">{error}</p>}
         </section>
+
+          {/* ───── RESET SHIFTS ───── */}
+          <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-2">Reset Employee Shifts</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                  Resets the shift timestamp for all employees.
+              </p>
+              <button
+                  onClick={resetAllEmployeeShifts}
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                  Reset All Employee Shifts
+              </button>
+          </section>
+
 
       </div>
   );
