@@ -1,23 +1,30 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { AppConfig } from '@/lib/api/config';
+import React, { useEffect, useState } from "react";
+import { AppConfig } from "@/lib/api/config";
+import {
+  BarChart2,
+  TrendingUp,
+  DollarSign,
+  Layers3,
+  Star,
+} from "lucide-react";
 
-
+/* ─── API BASE ─────────────────────────────── */
 const BASE_URL = `${AppConfig.postgresHttpBaseUrl}/merchant`;
 
-// --- Interfaces ---
+/* ─── DATA TYPES ───────────────────────────── */
 interface GeneralData {
   revenue: number;
-  items: number; // matches the JSON "items" key
+  items: number;
   tips: number;
-  itemsPoints: number; // matches the JSON "itemsPoints" key
+  itemsPoints: number;
   points: number;
 }
 
 interface DrinkCount {
   drinkId: number;
-  name: string;
+  itemName: string;
   doublePrice: number;
   soldWithDollars: number;
   soldWithPoints: number;
@@ -26,261 +33,251 @@ interface DrinkCount {
 
 interface Order {
   orderId: number;
-  barId: number;
-  userId: number;
   timestamp: string;
-  totalPointPrice: number;
   totalRegularPrice: number;
   tip: number;
-  inAppPayments: boolean;
   status: string;
-  station: string;
-  tipsClaimed: string;
-  pointOfSale: boolean;
 }
 
 export default function AnalyticsPage() {
-  const [generalData, setGeneralData] = useState<GeneralData | null>(null);
-  const [drinkCounts, setDrinkCounts] = useState<DrinkCount[]>([]);
-  const [visibleCount, setVisibleCount] = useState(10);
-  const [ordersByDay, setOrdersByDay] = useState<Order[]>([]);
-  const [selectedDay, setSelectedDay] = useState('');
-  const [error, setError] = useState('');
+  const [general, setGeneral]   = useState<GeneralData | null>(null);
+  const [drinks,  setDrinks]    = useState<DrinkCount[]>([]);
+  const [visible, setVisible]   = useState(10);
+  const [orders,  setOrders]    = useState<Order[]>([]);
+  const [date,    setDate]      = useState("");
+  const [err,     setErr]       = useState("");
 
-  // Fetch General Data
+  /* ── FETCH: General ──────────────────────── */
   useEffect(() => {
-    AppConfig.fetchWithAuth(`${BASE_URL}/generalData`)
-      .then((res) => res.json())
-      .then((data: GeneralData) => setGeneralData(data))
-      .catch((e) => setError(e.message));
+    (async () => {
+      try {
+        const g = await AppConfig.fetchWithAuth(`${BASE_URL}/generalData`)
+            .then(r => r.json());
+        setGeneral(g);
+      } catch (e: any) { setErr(e.message); }
+    })();
   }, []);
 
-  // Fetch Top Selling Items
+  /* ── FETCH: Top Items ────────────────────── */
   useEffect(() => {
-    AppConfig.fetchWithAuth(`${BASE_URL}/allItemCounts`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Cannot load item counts');
-        return res.json();
-      })
-      .then((json: { data: DrinkCount[] }) => setDrinkCounts(json.data || []))
-      .catch((e) => setError(String(e.message || e)));
+    (async () => {
+      try {
+        const json = await AppConfig.fetchWithAuth(`${BASE_URL}/allItemCounts`)
+            .then(r => { if (!r.ok) throw new Error("Cannot load item counts"); return r.json(); });
+        setDrinks(json.data || []);
+      } catch (e: any) { setErr(e.message); }
+    })();
   }, []);
 
-  // Fetch Orders By Day
-  const searchOrdersByDay = async () => {
-    if (!selectedDay) {
-      setError('Please select a date first.');
-      return;
-    }
+  /* ── FETCH: Orders by Day ────────────────── */
+  const loadOrders = async () => {
+    if (!date) return setErr("Pick a date first");
     try {
-      const res = await fetch(`${BASE_URL}/byDay?date=${selectedDay}`, {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Cannot load orders for that day');
-      const json = await res.json();
-      setOrdersByDay(json.orders || []);
-    } catch (e) {
-      setError(String(e));
-    }
+      const json = await AppConfig.fetchWithAuth(`${BASE_URL}/byDay?date=${date}`,
+          { credentials: "include" })
+          .then(r => { if (!r.ok) throw new Error("Cannot load orders"); return r.json(); });
+      setOrders(json.orders || []);
+    } catch (e: any) { setErr(e.message); }
   };
 
-  const showAll = () => setVisibleCount(drinkCounts.length);
-  const showLess = () => setVisibleCount(10);
-  const showMore = () => setVisibleCount((n) => n + 10);
-  const isAllVisible = visibleCount >= drinkCounts.length;
+  /* ── Table pagination helpers ────────────── */
+  const showMore = () => setVisible(n => n + 10);
+  const showLess = () => setVisible(10);
+  const showAll  = () => setVisible(drinks.length);
+  const allVisible = visible >= drinks.length;
 
+  /* ─── UI ─────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-gray-100 text-black py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl font-extrabold text-center mb-8">
-          Analytics Dashboard
-        </h1>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-slate-100 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+        <div className="max-w-7xl mx-auto space-y-10">
+          {/* HEADER */}
+          <header className="text-center">
+            <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700 text-transparent bg-clip-text">
+              Analytics Dashboard
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Real-time performance of your store
+            </p>
+          </header>
 
-        {error && (
-          <div className="bg-red-200 border-l-4 border-red-600 p-4 mb-6 rounded">
-            {error}
-          </div>
-        )}
+          {/* ERROR */}
+          {err && (
+              <div className="bg-red-100 text-red-800 border border-red-300 px-4 py-3 rounded-lg mx-auto max-w-md">
+                {err}
+              </div>
+          )}
 
-        {/* General Data */}
-        {generalData && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <Card
-              title="Revenue ($)"
-              value={`$${generalData.revenue.toFixed(2)}`}
-            />
-            <Card title="Revenue (pts)" value={`${generalData.points} pts`} />
-            <Card title="Units Sold ($)" value={`${generalData.items}`} />
-            <Card
-              title="Units Sold (pts)"
-              value={`${generalData.itemsPoints}`}
-            />
-            <Card title="Tips" value={`$${generalData.tips.toFixed(2)}`} />
-          </div>
-        )}
+          {/* METRIC CARDS */}
+          {general && (
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <MetricCard title="Revenue ($)"     value={`$${general.revenue.toFixed(2)}`} Icon={DollarSign} color="bg-emerald-500" />
+                <MetricCard title="Revenue (pts)"   value={`${general.points}`}                Icon={Layers3}  color="bg-amber-500"   />
+                <MetricCard title="Units Sold ($)"  value={`${general.items}`}                 Icon={BarChart2} color="bg-blue-500"   />
+                <MetricCard title="Units Sold (pts)" value={`${general.itemsPoints}`}          Icon={TrendingUp} color="bg-violet-500" />
+                <MetricCard title="Tips"            value={`$${general.tips.toFixed(2)}`}     Icon={Star}     color="bg-pink-500"    />
+              </section>
+          )}
 
-        {/* Top Selling Items */}
-        <div className="bg-white shadow-lg rounded-lg mb-8">
-          <div className="bg-gray-200 p-6">
-            <h2 className="text-3xl font-bold text-center">
-              Top Selling Items
-            </h2>
-          </div>
-          <div className="p-6">
-            {drinkCounts.length ? (
-              <>
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead className="bg-gray-300">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-semibold">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold">
-                        $Price
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold">
-                        Total Sold
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold">
-                        With $
-                      </th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold">
-                        With Points
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-300">
-                    {drinkCounts.slice(0, visibleCount).map((d) => (
-                      <tr key={d.drinkId} className="hover:bg-gray-100">
-                        <td className="px-4 py-2">{d.name}</td>
-                        <td className="px-4 py-2">
-                          ${d.doublePrice.toFixed(2)}
-                        </td>
-                        <td className="px-4 py-2">{d.totalSold}</td>
-                        <td className="px-4 py-2">{d.soldWithDollars}</td>
-                        <td className="px-4 py-2">{d.soldWithPoints}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="mt-4 flex justify-center space-x-4">
-                  {!isAllVisible && (
-                    <>
-                      <button
-                        onClick={showMore}
-                        className="px-4 py-2 bg-green-600 text-white rounded"
-                      >
-                        Show More
-                      </button>
-                      <button
-                        onClick={showAll}
-                        className="px-4 py-2 bg-blue-600 text-white rounded"
-                      >
-                        Show All
-                      </button>
-                    </>
-                  )}
-                  {visibleCount > 10 && (
-                    <button
-                      onClick={showLess}
-                      className="px-4 py-2 bg-red-400 text-white rounded"
-                    >
-                      Show Less
-                    </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="text-center text-gray-600">No items found.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Orders by Day */}
-        <div className="bg-white shadow-lg rounded-lg mb-8">
-          <div className="bg-gray-200 p-6">
-            <h2 className="text-3xl font-bold text-center">Orders by Day</h2>
-          </div>
-          <div className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
-              <label
-                htmlFor="orderDate"
-                className="text-lg font-semibold mb-2 md:mb-0"
-              >
-                Select Date (YYYY-MM-DD)
-              </label>
-              <input
-                type="date"
-                id="orderDate"
-                className="border p-2 rounded"
-                value={selectedDay}
-                onChange={(e) => setSelectedDay(e.target.value)}
-              />
-              <button
-                onClick={searchOrdersByDay}
-                className="mt-2 md:mt-0 px-4 py-2 bg-purple-600 text-white rounded"
-              >
-                Search
-              </button>
+          {/* TOP SELLING ITEMS */}
+          <section className="bg-white dark:bg-slate-800 shadow-xl rounded-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-white via-gray-200 to-gray-300 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 p-6">
+              <h2 className="text-2xl font-bold text-black dark:text-white text-center">Top Selling Items</h2>
             </div>
+            <div className="p-6 overflow-x-auto">
+              {drinks.length ? (
+                  <>
+                    <table className="min-w-full text-sm text-left">
+                      <thead className="bg-slate-200 dark:bg-slate-700 uppercase text-slate-600 dark:text-slate-300">
+                      <tr>
+                        <Th>Name</Th>
+                        <Th>$ Price</Th>
+                        <Th>Total Sold</Th>
+                        <Th>With $</Th>
+                        <Th>With Points</Th>
+                      </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {drinks.slice(0, visible).map(d => (
+                          <tr key={d.drinkId} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                            <Td>{d.itemName}</Td>
+                            <Td>${d.doublePrice.toFixed(2)}</Td>
+                            <Td>{d.totalSold}</Td>
+                            <Td>{d.soldWithDollars}</Td>
+                            <Td>{d.soldWithPoints}</Td>
+                          </tr>
+                      ))}
+                      </tbody>
+                    </table>
 
-            {ordersByDay.length ? (
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-300">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                      Order ID
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                      Timestamp
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                      Total ($)
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                      Tip ($)
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-300">
-                  {ordersByDay.map((o) => (
-                    <tr key={o.orderId} className="hover:bg-gray-100">
-                      <td className="px-4 py-2">{o.orderId}</td>
-                      <td className="px-4 py-2">
-                        {new Date(o.timestamp).toLocaleString('en-US', {
-                          dateStyle: 'short',
-                          timeStyle: 'short',
-                          timeZone: 'America/New_York',
-                        })}
-                      </td>
-                      <td className="px-4 py-2">
-                        ${o.totalRegularPrice.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2">${o.tip.toFixed(2)}</td>
-                      <td className="px-4 py-2">{o.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="text-center text-gray-600">
-                No orders for that day.
-              </p>
-            )}
-          </div>
+                    {/* Pagination buttons */}
+                    <div className="flex flex-wrap justify-center gap-3 mt-6">
+                      {!allVisible && (
+                          <>
+                            <Button onClick={showMore} color="emerald">Show More</Button>
+                            <Button onClick={showAll}  color="indigo">Show All</Button>
+                          </>
+                      )}
+                      {visible > 10 && (
+                          <Button onClick={showLess} color="rose">Show Less</Button>
+                      )}
+                    </div>
+                  </>
+              ) : (
+                  <p className="text-center text-slate-500 dark:text-slate-400">No items found.</p>
+              )}
+            </div>
+          </section>
+
+          {/* ORDERS BY DAY */}
+          <section className="bg-white dark:bg-slate-800 shadow-xl rounded-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-white via-gray-200 to-gray-300 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 p-6">
+              <h2 className="text-2xl font-bold text-black dark:text-white text-center">Orders by Day</h2>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <input
+                    type="date"
+                    value={date}
+                    onChange={e => setDate(e.target.value)}
+                    className="border rounded px-3 py-2 flex-1 bg-white text-black"
+                />
+
+
+                <Button onClick={loadOrders} color="neutral">Search</Button>
+              </div>
+
+              {orders.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm text-left">
+                      <thead className="bg-slate-200 dark:bg-slate-700 uppercase text-slate-600 dark:text-slate-300">
+                      <tr>
+                        <Th>Order ID</Th>
+                        <Th>Timestamp</Th>
+                        <Th>Total ($)</Th>
+                        <Th>Tip ($)</Th>
+                        <Th>Status</Th>
+                      </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {orders.map(o => (
+                          <tr key={o.orderId} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                            <Td>{o.orderId}</Td>
+                            <Td>
+                              {new Date(o.timestamp).toLocaleString("en-US", {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                                timeZone: "America/New_York",
+                              })}
+                            </Td>
+                            <Td>${o.totalRegularPrice.toFixed(2)}</Td>
+                            <Td>${o.tip.toFixed(2)}</Td>
+                            <Td>{o.status}</Td>
+                          </tr>
+                      ))}
+                      </tbody>
+                    </table>
+                  </div>
+              ) : (
+                  <p className="text-center text-slate-500 dark:text-slate-400">No orders for that day.</p>
+              )}
+            </div>
+          </section>
         </div>
       </div>
-    </div>
   );
 }
 
-const Card = ({ title, value }: { title: string; value: string }) => (
-  <div className="bg-white shadow-lg rounded p-4 text-gray-900">
-    <h2 className="font-bold text-xl">{title}</h2>
-    <p className="text-3xl">{value}</p>
-  </div>
+/* ─── SMALL COMPONENTS ─────────────────────── */
+const MetricCard = ({
+                      title,
+                      value,
+                      Icon,
+                      color,
+                    }: {
+  title: string;
+  value: string;
+  Icon: React.ElementType;
+  color: string;
+}) => (
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow flex items-center p-4 gap-4">
+      <div className={`${color} text-white rounded-full p-3 shrink-0`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
+        <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+      </div>
+    </div>
 );
+
+const Th = ({ children }: { children: React.ReactNode }) => (
+    <th className="px-4 py-2 font-semibold tracking-wide whitespace-nowrap">{children}</th>
+);
+const Td = ({ children }: { children: React.ReactNode }) => (
+    <td className="px-4 py-2 whitespace-nowrap">{children}</td>
+);
+
+const Button = ({
+                  children,
+                  onClick,
+                  color,
+                }: {
+  children: React.ReactNode;
+  onClick: () => void;
+  color: "emerald" | "indigo" | "rose" | "neutral";
+}) => {
+  const colorMap: Record<string, string> = {
+    emerald: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    indigo:  "bg-indigo-600  hover:bg-indigo-700  text-white",
+    rose:    "bg-rose-500    hover:bg-rose-600    text-white",
+    neutral: "bg-gradient-to-r from-white via-gray-200 to-gray-300 hover:from-white hover:via-gray-300 hover:to-gray-400 text-black",
+  };
+  return (
+      <button
+          onClick={onClick}
+          className={`${colorMap[color]} px-4 py-2 rounded shadow`}
+      >
+        {children}
+      </button>
+  );
+};
